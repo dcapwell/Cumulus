@@ -28,7 +28,7 @@ public class PoolExperiment {
   }
 
   /**
-   * Doesn't support controling wait time, so get should always be O(1) or could be an issue
+   * Doesn't support controling backoff time, so get should always be O(1) or could be an issue
    */
   public void interfaceTest() {
     // given
@@ -53,7 +53,7 @@ public class PoolExperiment {
   }
 
   /**
-   * Allows you to control the wait period and know if the connection is given or not, but
+   * Allows you to control the backoff period and know if the connection is given or not, but
    * you still have to return by hand.
    */
   public void blockingInterfaceTest() {

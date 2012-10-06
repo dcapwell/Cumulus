@@ -8,7 +8,7 @@
   <artifactId>cumulus</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <description>Cumulus is a common collection of useful classes for dealing with cloud based systems.</description>
+  <description>Cumulus is a common collection of useful classes for developing server applications.</description>
 
   <scm>
     <connection>scm:git:git@github.com:dcapwell/cumulus.git</connection>

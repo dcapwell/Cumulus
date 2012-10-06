@@ -8,8 +8,4 @@ public class ClosedPoolException extends PoolRuntimeException {
   public ClosedPoolException() {
     super("Pool is closed");
   }
-
-  public ClosedPoolException(final String s) {
-    super(s);
-  }
 }

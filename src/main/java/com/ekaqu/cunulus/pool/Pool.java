@@ -15,11 +15,15 @@ public interface Pool<T> extends Service {
   /**
    * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this
    * method is allowed to block for.  If the time has exceeded then the returned value will be empty.
+   *
+   * @throws ClosedPoolException pool is closed
    */
   Optional<T> borrow(long timeout, TimeUnit unit);
 
   /**
    * Returns an object to the pool
+   *
+   * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj);
 

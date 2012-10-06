@@ -1,7 +1,9 @@
 package com.ekaqu.cunulus.pool;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.FutureCallback;
@@ -15,11 +17,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @TODO Add monitoring
+ * @TODO when idle count > corePoolSize for long enough, start removing objects
+ */
+@Beta
 public class SimplePool<T> extends AbstractService implements Pool<T> {
 
-  private final int maxObjects, initialObjects;
+  private final int maximumPoolSize, corePoolSize;
   private final AtomicInteger availableCount = new AtomicInteger();
-  private final ObjectFactory<T> factory;
+  private final Supplier<T> supplier;
   private final BlockingQueue<T> available;
   private final ListeningExecutorService executorService;
   private final FutureCallback<T> createObjectListener = new FutureCallback<T>() {
@@ -40,22 +47,26 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
   private final Callable<T> createObjectCallable = new Callable<T>() {
     @Override
     public T call() throws Exception {
-      T obj = factory.get();
+      T obj = supplier.get();
       Preconditions.checkNotNull(obj, "Not allowed to put null in the pool");
       return obj;
     }
   };
 
-  public SimplePool(final ObjectFactory<T> factory, final ListeningExecutorService executorService,
-                    final int initialObjects, final int maxObjects) {
-    Preconditions.checkArgument(maxObjects >= initialObjects, "Max Objects should be equal to or larger than initial objects");
+  public SimplePool(final Supplier<T> supplier, final ListeningExecutorService executorService,
+      final int corePoolSize, final int maximumPoolSize) {
+    Preconditions.checkArgument(
+        corePoolSize >= 0
+        && maximumPoolSize > 0
+        && maximumPoolSize >= corePoolSize
+    );
 
-    this.maxObjects = maxObjects;
-    this.initialObjects = initialObjects;
+    this.maximumPoolSize = maximumPoolSize;
+    this.corePoolSize = corePoolSize;
 
-    this.factory = Preconditions.checkNotNull(factory);
+    this.supplier = Preconditions.checkNotNull(supplier);
     this.executorService = Preconditions.checkNotNull(executorService);
-    this.available = Queues.newLinkedBlockingQueue(maxObjects);
+    this.available = Queues.newLinkedBlockingQueue(maximumPoolSize);
 
     MoreExecutors.addDelayedShutdownHook(executorService, 500, TimeUnit.MILLISECONDS); //TODO magic number...
   }
@@ -64,7 +75,7 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
   protected void doStart() {
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
     try {
-      for (int i = 0; i < initialObjects; i++) {
+      for (int i = 0; i < corePoolSize; i++) {
         available.offer(createObjectCallable.call());
         availableCount.incrementAndGet();
       }
@@ -82,19 +93,11 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
     this.executorService.shutdown();
 
     // clean up pool
-    while (!this.available.isEmpty()) {
-      T obj = available.poll();
-      factory.cleanup(obj);
-    }
+    this.available.clear();
 
     notifyStopped();
   }
 
-  /**
-   * {@inheritDoc Pool#borrow(long, java.util.concurrent.TimeUnit)}
-   *
-   * @throws ClosedPoolException pool is closed
-   */
   @Override
   public Optional<T> borrow(final long timeout, final TimeUnit unit) {
     checkNotClosed();
@@ -105,39 +108,24 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
       // pool is empty, see if a new connection can be created
       tryCreateAsync();
 
-      // wait for a connection to be added and return that
+      // backoff for a connection to be added and return that
       try {
         obj = this.available.poll(timeout, unit);
       } catch (InterruptedException e) {
-        // something interrupted the wait, interrupt the current thread
+        // something interrupted the backoff, interrupt the current thread
         Thread.currentThread().interrupt();
       }
     }
     return Optional.fromNullable(obj);
   }
 
-  /**
-   * Attempts to create a new object in the background if the pool is allowed to expand
-   */
-  private void tryCreateAsync() {
-    if(maxObjects > availableCount.get()) {
-      ListenableFuture<T> result = this.executorService.submit(createObjectCallable);
-      Futures.addCallback(result, createObjectListener);
-    }
-  }
-
   @Override
   public void returnToPool(final T obj) {
+    Preconditions.checkNotNull(obj);
+
     checkNotClosed();
 
-    if (factory.shouldAddToPool(obj)) {
-      // safe to add obj to pool, but check to see if pool is too large already
-      if(maxObjects < availableCount.get()) {
-        factory.cleanup(obj);
-      } else {
-        available.offer(obj);
-      }
-    }
+    available.offer(obj);
   }
 
   @Override
@@ -148,6 +136,16 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
   @Override
   public boolean isEmpty() {
     return this.available.isEmpty();
+  }
+
+  /**
+   * Attempts to create a new object in the background if the pool is allowed to expand
+   */
+  private void tryCreateAsync() {
+    if(maximumPoolSize > availableCount.get()) {
+      ListenableFuture<T> result = this.executorService.submit(createObjectCallable);
+      Futures.addCallback(result, createObjectListener);
+    }
   }
 
   /**

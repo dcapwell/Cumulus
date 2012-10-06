@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.pool;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -15,7 +16,6 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -25,36 +25,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SimplePoolTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(SimplePoolTest.class.getName());
 
-  private final ObjectFactory<String> singleNameFactory = new ObjectFactory<String>() {
-    @Override
-    public boolean shouldAddToPool(final String object) {
-      return true;
-    }
-
-    @Override
-    public void cleanup(final String obj) {
-
-    }
-
+  private final Supplier<String> singleNameManager = new Supplier<String>() {
     @Override
     public String get() {
       return getClass().getName();
     }
   };
 
-  private final ObjectFactory<String> increamentName = new ObjectFactory<String>() {
+  private final Supplier<String> increamentName = new Supplier<String>() {
     private final AtomicInteger counter = new AtomicInteger();
-
-    @Override
-    public boolean shouldAddToPool(final String object) {
-      return Integer.parseInt(object) < counter.get();
-    }
-
-    @Override
-    public void cleanup(final String obj) {
-
-    }
-
     @Override
     public String get() {
       return Integer.toString(counter.getAndIncrement());
@@ -66,7 +45,7 @@ public class SimplePoolTest {
       .build();
 
   public void simplePoolTest() {
-    Pool<String> pool = new SimplePool<String>(singleNameFactory, MoreExecutors.sameThreadExecutor(), 1, 10);
+    Pool<String> pool = new SimplePool<String>(singleNameManager, MoreExecutors.sameThreadExecutor(), 1, 10);
     pool.startAndWait();
 
     Optional<String> result = pool.borrow(5, TimeUnit.SECONDS);
@@ -75,7 +54,7 @@ public class SimplePoolTest {
   }
 
   public void simplePoolTestTakeAllYourData() {
-    Pool<String> pool = new SimplePool<String>(singleNameFactory, MoreExecutors.sameThreadExecutor(), 1, 10);
+    Pool<String> pool = new SimplePool<String>(singleNameManager, MoreExecutors.sameThreadExecutor(), 1, 10);
     pool.startAndWait();
 
     for(int i = 0; i < 10; i++) {
