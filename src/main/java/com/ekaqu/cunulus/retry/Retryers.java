@@ -28,41 +28,6 @@ public class Retryers {
     return new DefaultRetryer(maxRetries, new ExponentialBackOffPolicy());
   }
 
-  public static <T> T newProxy(final Retryer retryer, final T target, Class<T> interfaceType) {
-    checkNotNull(target, "target");
-    checkNotNull(interfaceType, "interfaceType");
-    checkNotNull(retryer, "retryer");
-    InvocationHandler handler = new InvocationHandler() {
-      public Object invoke(final Object obj, final Method method, final Object[] args) throws Throwable {
-        Callable<Object> retryableTask = new Callable<Object>() {
-          public Object call() throws Exception {
-            try {
-              method.setAccessible(true); // some methods might not allow us to call, so force accessible
-              return method.invoke(target, args);
-            } catch (InvocationTargetException e) {
-              Throwables.propagateIfPossible(e.getCause(), Exception.class);
-              throw new AssertionError("can't get here");
-            }
-          }
-        };
-        return retryer.submitWithRetry(retryableTask);
-      }
-    };
-
-    Object object = Proxy.newProxyInstance(interfaceType.getClassLoader(), new Class<?>[]{interfaceType}, handler);
-    return interfaceType.cast(object);
-  }
-
-  public static <T> T newProxy(final int maxRetries, final T target, Class<T> interfaceType) {
-    Retryer retryer = newRetryer(maxRetries);
-    return newProxy(retryer, target, interfaceType);
-  }
-
-  public static <T> T newExponentialBackoffProxy(final int maxRetries, final T target, Class<T> interfaceType) {
-    Retryer retryer = newExponentialBackoffRetryer(maxRetries);
-    return newProxy(retryer, target, interfaceType);
-  }
-
   public static ListeningRetryer newListeningRetryer(final int maxRetries, final ExecutorService executorService) {
     Retryer retryer = newRetryer(maxRetries);
     return new DefaultListeningRetryer(executorService, retryer);

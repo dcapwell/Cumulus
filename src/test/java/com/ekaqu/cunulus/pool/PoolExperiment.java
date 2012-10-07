@@ -3,6 +3,7 @@ package com.ekaqu.cunulus.pool;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -180,6 +181,61 @@ public class PoolExperiment {
         return s;
       }
     }, retryer);
+  }
+
+  public interface HealthChecker<T> {
+
+    boolean isHealthy(T obj);
+    void free(T obj);
+  }
+
+  // too step lookup.  Kinda ugly useage.  What about if the HC only had one method?
+  public void connectionHealthCheck() {
+    HealthChecker<String> stringHealthChecker = mock(HealthChecker.class);
+
+    String string = "goodString";
+    if(stringHealthChecker.isHealthy(string)) {
+      // safe to use
+    } else {
+      stringHealthChecker.free(string);
+    }
+  }
+
+  public interface HeathCheckv2<T> {
+    boolean isBadThenFree(T obj);
+  }
+
+  /**
+   * Making it one method saves typing but just makes it harder to understand.
+   *
+   * Also it doesn't let me know the state.  Is the pool still good to use?  Should I just free the object
+   * or should i kill the pool?
+   */
+  public void connectionHealthCheckv2() {
+    HeathCheckv2<String> stringHeathCheckv2 = mock(HeathCheckv2.class);
+
+    String ref = "badString";
+    if(stringHeathCheckv2.isBadThenFree(ref)) {
+      // this is confusing, what do we do here?
+    }
+  }
+
+  public interface EvictionStrategy<T> extends Supplier<T> {
+
+    boolean validate(T obj);
+    void cleanup(T obj);
+  }
+
+  /**
+   * Same as the first HealthChecker
+   */
+  public void evictIfNeeded() {
+    EvictionStrategy<String> stringEvictionStrategy = mock(EvictionStrategy.class);
+    String ref = stringEvictionStrategy.get();
+
+    if(! stringEvictionStrategy.validate(ref)) {
+      stringEvictionStrategy.cleanup(ref);
+    }
   }
 
 }
