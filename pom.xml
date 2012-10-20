@@ -11,9 +11,9 @@
   <description>Cumulus is a common collection of useful classes for developing server applications.</description>
 
   <scm>
-    <connection>scm:git:git@github.com:dcapwell/cumulus.git</connection>
-    <url>https://github.com/dcapwell/cumulus</url>
-    <developerConnection>scm:git:git@github.com:dcapwell/cumulus.git</developerConnection>
+    <connection>scm:git:git@github.com:dcapwell/Cumulus.git</connection>
+    <url>https://github.com/dcapwell/Cumulus</url>
+    <developerConnection>scm:git:git@github.com:dcapwell/Cumulus.git</developerConnection>
   </scm>
 
   <properties>
