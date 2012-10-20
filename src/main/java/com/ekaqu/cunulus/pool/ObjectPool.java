@@ -57,7 +57,7 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
 
   @Override
   protected void doStop() {
-    checkNotClosed();
+    Preconditions.checkState(State.STOPPING.equals(state()), "Not in the stopping state: " + state());
 
     // clean up pooled objects
     List<T> objs = Lists.newArrayList();

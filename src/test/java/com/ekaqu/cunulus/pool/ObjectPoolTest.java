@@ -13,6 +13,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @Test(groups = "Unit")
 public class ObjectPoolTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectPoolTest.class.getName());
@@ -91,6 +95,54 @@ public class ObjectPoolTest {
     }
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), 10, "MaxPoolSize not expanded to");
+  }
+
+  public void rejectInvalid() {
+    // given
+    ObjectFactory<String> factory = mock(ObjectFactory.class);
+    final Pool<String> pool = new ObjectPool<String>(factory, 2, 4, executorService);
+
+    // when
+    when(factory.get()).thenReturn("one", "two", "three", "four");
+    pool.startAndWait();
+
+    // take the elements out of the queue so its empty
+    for(int i = 0; i < 2; i++) {
+      pool.borrow();
+    }
+
+    String num = "five";
+    Optional<Throwable> opt = Optional.absent();
+    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.INVALID);
+
+    // then
+    pool.returnToPool(num, opt);
+    Assert.assertEquals(pool.size(), 0);
+    verify(factory).cleanup(num);
+  }
+
+  public void rejectIAndKillPool() {
+    // given
+    ObjectFactory<String> factory = mock(ObjectFactory.class);
+    final Pool<String> pool = new ObjectPool<String>(factory, 2, 4, executorService);
+
+    // when
+    when(factory.get()).thenReturn("one", "two", "three", "four");
+    pool.startAndWait();
+
+    // take the elements out of the queue so its empty
+    for(int i = 0; i < 2; i++) {
+      pool.borrow();
+    }
+
+    String num = "five";
+    Optional<Throwable> opt = Optional.absent();
+    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.CLOSE_POOL);
+
+    // then
+    pool.returnToPool(num, opt);
+    Assert.assertEquals(pool.size(), 0);
+    Assert.assertFalse(pool.isRunning(), "Currently running");
   }
 
   private static class StringFactory extends AbstractObjectFactory<String> {
