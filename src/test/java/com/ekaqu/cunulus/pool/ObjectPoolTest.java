@@ -146,6 +146,26 @@ public class ObjectPoolTest {
     Assert.assertFalse(pool.isRunning(), "Currently running");
   }
 
+  public void addMoreThanMax() {
+    // given
+    ObjectFactory<String> factory = mock(ObjectFactory.class);
+    final Pool<String> pool = new ObjectPool<String>(factory, 2, 2, executorService);
+
+    // when
+    when(factory.get()).thenReturn("one", "two", "three", "four");
+    pool.startAndWait();
+    LOGGER.info("Pool {}", pool);
+
+    String num = "five";
+    Optional<Throwable> opt = Optional.absent();
+    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.VALID);
+
+    // then
+    pool.returnToPool(num, opt);
+    Assert.assertEquals(pool.size(), 2);
+    Assert.assertTrue(pool.isRunning(), "Currently running");
+  }
+
   private static class StringFactory extends AbstractObjectFactory<String> {
     private final AtomicInteger count = new AtomicInteger(0);
 

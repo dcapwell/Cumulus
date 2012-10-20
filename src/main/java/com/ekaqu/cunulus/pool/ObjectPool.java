@@ -83,10 +83,10 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
     // should be non blocking, just get the head and return that
     T obj = this.available.poll();
     if (obj == null) {
-      // pool is empty, see if a new connection can be created
+      // pool is empty, see if a new object can be created
       tryCreateAsync();
 
-      // backoff for a connection to be added and return that
+      // backoff for a object to be added and return that
       try {
         obj = this.available.poll(timeout, unit);
       } catch (InterruptedException e) {
@@ -155,7 +155,8 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
    */
   private boolean createAndAdd() {
     boolean added = false;
-    //TODO should this lock? There is a chance that the number of objects is larger than max size but the lock will slow this down
+    //TODO should this lock? There is a chance that the number of objects is larger than max size
+    //TODO queue is capped so going larger shouldn't be an issue but count might get larger
     if(maximumPoolSize > availableCount.get()) {
       T obj = objectFactory.get();
       if(available.offer(obj)) {
