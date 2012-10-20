@@ -129,6 +129,12 @@ public class SimplePool<T> extends AbstractService implements Pool<T> {
   }
 
   @Override
+  public void returnToPoolWithException(final T obj, final Throwable throwable) {
+    //TODO validate exception
+    returnToPool(obj);
+  }
+
+  @Override
   public int size() {
     return this.available.size();
   }

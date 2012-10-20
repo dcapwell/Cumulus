@@ -28,6 +28,13 @@ public interface Pool<T> extends Service {
   void returnToPool(T obj);
 
   /**
+   * Returns an object to the pool with the last exception thrown.
+   *
+   * @throws ClosedPoolException pool is closed
+   */
+  void returnToPoolWithException(T obj, Throwable throwable);
+
+  /**
    * How many elements are currently in the pool
    */
   int size();

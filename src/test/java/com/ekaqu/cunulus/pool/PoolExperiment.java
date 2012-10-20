@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -220,21 +222,65 @@ public class PoolExperiment {
     }
   }
 
-  public interface EvictionStrategy<T> extends Supplier<T> {
+  public interface ObjectFactory<T> extends Supplier<T> {
 
     boolean validate(T obj);
     void cleanup(T obj);
   }
 
   /**
-   * Same as the first HealthChecker
+   * Same as the first HealthChecker but merged the supplier.  Supplier was responsible for creating objects
+   * so it should be responsible for knowing when objects are not valid and how to clean up.
    */
   public void evictIfNeeded() {
-    EvictionStrategy<String> stringEvictionStrategy = mock(EvictionStrategy.class);
-    String ref = stringEvictionStrategy.get();
+    ObjectFactory<String> stringObjectFactory = mock(ObjectFactory.class);
+    String ref = stringObjectFactory.get();
 
-    if(! stringEvictionStrategy.validate(ref)) {
-      stringEvictionStrategy.cleanup(ref);
+    if(! stringObjectFactory.validate(ref)) {
+      stringObjectFactory.cleanup(ref);
+    }
+  }
+
+  /**
+   * The ObjectManager is responsible for creating and destroying objects.
+   */
+  public interface ObjectManager<T> extends Supplier<T> {
+    enum State {
+      /**
+       * The given object is in a good enough state to be regiven back to an Pool
+       */
+      VALID,
+      /**
+       * The given object is not in a good state and should be cleaned up
+       */
+      INVALID,
+      /**
+       * The pool can no longer be in a good state and should be invalidated
+       */
+      CLOSE_POOL
+    }
+
+    State validate(T obj, Optional<? extends Throwable> error);
+    void cleanup(T obj);
+  }
+
+  public interface PoolWithErrors<T> extends Pool<T> {
+    void returnToPoolWithException(T obj, Throwable throwable);
+  }
+
+
+  public void manager() {
+    PoolWithErrors<Closeable> pool = mock(PoolWithErrors.class);
+    Closeable closeable = pool.get();
+    try {
+      // some logic
+      closeable.close();
+      // some logic
+
+      pool.returnConnection(closeable);
+    } catch (IOException e) {
+      pool.returnToPoolWithException(closeable, e);
+      // this could be error prone since there are two methods with similar names/params
     }
   }
 
