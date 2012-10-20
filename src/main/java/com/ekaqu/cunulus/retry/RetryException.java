@@ -1,4 +1,4 @@
-package com.ekaqu.cunulus.pool;
+package com.ekaqu.cunulus.retry;
 
 /**
  * Wrapper exception around an Throwable.  This exception should be used if a runnable throws an exception

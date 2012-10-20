@@ -15,14 +15,14 @@ public interface Retryer {
   /**
    * Retry the given {@code Runnable} based off a set of conditions
    *
-   * @throws com.ekaqu.cunulus.pool.RetryException when runnable throws Exception
+   * @throws RetryException when runnable throws Exception
    */
   void submitWithRetry(Runnable retryableTask);
 
   /**
    * Retry the given {@code Runnable} based off a set of conditions
    *
-   * @throws com.ekaqu.cunulus.pool.RetryException when runnable throws Exception
+   * @throws RetryException when runnable throws Exception
    */
   <T> T submitWithRetry(Runnable retryableTask, T result);
 

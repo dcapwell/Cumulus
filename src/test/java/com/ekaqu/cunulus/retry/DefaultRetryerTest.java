@@ -1,7 +1,5 @@
 package com.ekaqu.cunulus.retry;
 
-import com.ekaqu.cunulus.pool.PoolExperiment;
-import com.ekaqu.cunulus.pool.RetryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

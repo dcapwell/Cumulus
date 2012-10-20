@@ -17,14 +17,14 @@ public interface ListeningRetryer {
   /**
    * Retry the given {@code Runnable} based off a set of conditions
    *
-   * @throws com.ekaqu.cunulus.pool.RetryException when runnable throws Exception.  This will be in the future
+   * @throws RetryException when runnable throws Exception.  This will be in the future
    */
   ListenableFuture<?> submitWithRetry(Runnable retryableTask);
 
   /**
    * Retry the given {@code Runnable} based off a set of conditions
    *
-   * @throws com.ekaqu.cunulus.pool.RetryException when runnable throws Exception.  This will be in the future
+   * @throws RetryException when runnable throws Exception.  This will be in the future
    */
   <T> ListenableFuture<T> submitWithRetry(Runnable retryableTask, T result);
 }

@@ -13,6 +13,14 @@ import java.util.concurrent.TimeUnit;
 public interface Pool<T> extends Service {
 
   /**
+   * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool
+   * then the returned value will be {@code Optional#absent()}
+   *
+   * @throws ClosedPoolException pool is closed
+   */
+  Optional<T> borrow();
+
+  /**
    * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this
    * method is allowed to block for.  If the time has exceeded then the returned value will be empty.
    *
@@ -32,7 +40,7 @@ public interface Pool<T> extends Service {
    *
    * @throws ClosedPoolException pool is closed
    */
-  void returnToPoolWithException(T obj, Throwable throwable);
+  void returnToPool(T obj, Optional<? extends Throwable> throwable);
 
   /**
    * How many elements are currently in the pool

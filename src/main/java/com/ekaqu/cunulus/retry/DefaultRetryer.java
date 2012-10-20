@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.retry;
 
-import com.ekaqu.cunulus.pool.RetryException;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

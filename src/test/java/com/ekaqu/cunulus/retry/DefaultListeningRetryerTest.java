@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.retry;
 
-import com.ekaqu.cunulus.pool.RetryException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
