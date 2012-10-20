@@ -1,5 +1,6 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.util.Sized;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.Service;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> type of the object in the pool
  */
-public interface Pool<T> extends Service {
+public interface Pool<T> extends Service, Sized {
 
   /**
    * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool
@@ -42,13 +43,13 @@ public interface Pool<T> extends Service {
    */
   void returnToPool(T obj, Throwable throwable);
 
-  /**
-   * How many elements are currently in the pool
-   */
-  int size();
-
-  /**
-   * Check whether the pool is empty or not
-   */
-  boolean isEmpty();
+//  /**
+//   * How many elements are currently in the pool
+//   */
+//  int size();
+//
+//  /**
+//   * Check whether the pool is empty or not
+//   */
+//  boolean isEmpty();
 }

@@ -115,8 +115,13 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
     ObjectFactory.State state = objectFactory.validate(obj, throwable);
     switch (state) {
       case VALID:
-        // just add back to the pool
-        available.offer(obj);
+        // just add back to the pool if pool can support it
+        if(available.size() >= availableCount.get()) {
+          // clean up since pool has enough elements right now
+          objectFactory.cleanup(obj);
+        } else {
+          available.offer(obj);
+        }
         break;
       case INVALID:
         // clean up object

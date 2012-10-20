@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.pool;
 
-import com.ekaqu.cunulus.retry.RetryException;
 import com.ekaqu.cunulus.retry.Retryer;
 import com.ekaqu.cunulus.util.Block;
 import com.google.common.base.Optional;
