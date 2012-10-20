@@ -129,6 +129,7 @@ public class ObjectPoolTest {
     // when
     when(factory.get()).thenReturn("one", "two", "three", "four");
     pool.startAndWait();
+    LOGGER.info("Pool {}", pool);
 
     // take the elements out of the queue so its empty
     for(int i = 0; i < 2; i++) {
