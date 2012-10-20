@@ -28,13 +28,16 @@ if(opt.isPresent()) {
  * {@link ExecutingPool} handle returning the object to the pool.
  *
  * Example: {@code
-executingPool.execute(new Block<String>() {
+executingPool.execute(new Block<T>() {
   @Override
-  public void apply(final String obj) {
+  public void apply(final T obj) {
     LOGGER.info("Object given {}", obj);
   }
 });
  }
+ *
+ * When exceptions are thrown, they will be propagated up as a RuntimeException.  If the exception is of type {@link Error}
+ * or {@link RuntimeException} then it is rethrown
  */
 public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public ExecutingPool(final Pool<T> pool) {
@@ -72,6 +75,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             pool.returnToPool(obj);
           } catch (Throwable t) {
             pool.returnToPool(obj, t);
+            throw Throwables.propagate(t);
           }
           return true;
         } else {
@@ -89,6 +93,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             pool.returnToPool(obj);
           } catch (Throwable t) {
             pool.returnToPool(obj, t);
+            throw Throwables.propagate(t);
           }
           return true;
         } else {
@@ -100,7 +105,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
 
   /**
    * Creates a new {@link ExecutingPool} with retries.  {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)} will
-   * be called multiple times based off the {@link Retryer}
+   * be called multiple times based off the {@link Retryer}.
    */
   public static <T> ExecutingPool<T> retryingExecutor(final Pool<T> pool, final Retryer retryer) {
     return new ExecutingPool<T>(pool) {
@@ -127,7 +132,8 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             }
           });
         } catch (Exception e) {
-          throw new RetryException(e);
+          // the callable doesn't throw an exception so this should be rare
+          throw Throwables.propagate(e);
         }
       }
 
@@ -145,6 +151,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
                   pool.returnToPool(obj);
                 } catch (Throwable t) {
                   pool.returnToPool(obj, t);
+                  throw Throwables.propagate(t);
                 }
                 return Boolean.TRUE;
               } else {
@@ -153,7 +160,8 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             }
           });
         } catch (Exception e) {
-          throw new RetryException(e);
+          // the callable doesn't throw an exception so this should be rare
+          throw Throwables.propagate(e);
         }
       }
     };

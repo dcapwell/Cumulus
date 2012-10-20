@@ -13,8 +13,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-//TODO implement monitoring the pool to know when to shrink it
+//TODO implement pool shrinking
 //TODO add JMX
+//TODO allow max/core to change
 public class ObjectPool<T> extends AbstractService implements Pool<T> {
   private final int maximumPoolSize, corePoolSize;
   private final AtomicInteger availableCount = new AtomicInteger();
@@ -122,6 +123,7 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
         objectFactory.cleanup(obj);
         break;
       case CLOSE_POOL:
+        objectFactory.cleanup(obj);
         stopAndWait();
         break;
       default:
@@ -143,8 +145,8 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("ObjectPool");
-    sb.append("{maximumPoolSize=").append(maximumPoolSize);
-    sb.append(", corePoolSize=").append(corePoolSize);
+    sb.append("{corePoolSize=").append(corePoolSize);
+    sb.append(", maximumPoolSize=").append(maximumPoolSize);
     sb.append(", availableCount=").append(availableCount);
     sb.append(", available=").append(available);
     sb.append('}');
@@ -158,13 +160,14 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
   private boolean createAndAdd() {
     boolean added = false;
     //TODO should this lock? There is a chance that the number of objects is larger than max size
-    //TODO queue is capped so going larger shouldn't be an issue but count might get larger
+    //TODO queue is capped so going larger shouldn't be an issue
     if(maximumPoolSize > availableCount.get()) {
       T obj = objectFactory.get();
       if(available.offer(obj)) {
         availableCount.incrementAndGet();
         added = true;
       } else {
+        objectFactory.cleanup(obj);
         throw new IllegalStateException("Unable to add object to pool");
       }
     }
