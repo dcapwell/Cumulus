@@ -13,6 +13,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+//TODO implement monitoring the pool to know when to shrink it
+//TODO add JMX
 public class ObjectPool<T> extends AbstractService implements Pool<T> {
   private final int maximumPoolSize, corePoolSize;
   private final AtomicInteger availableCount = new AtomicInteger();
@@ -99,11 +101,11 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
 
   @Override
   public void returnToPool(final T obj) {
-    returnToPool(obj, Optional.<Throwable>absent());
+    returnToPool(obj, null);
   }
 
   @Override
-  public void returnToPool(T obj, Optional<? extends Throwable> throwable) {
+  public void returnToPool(T obj, Throwable throwable) {
     Preconditions.checkNotNull(obj);
 
     checkNotClosed();

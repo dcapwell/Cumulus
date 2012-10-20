@@ -17,7 +17,7 @@ public class AbstractObjectFactoryTest {
   public void validate() {
     AbstractObjectFactory<String> of = mock(AbstractObjectFactory.class, Answers.CALLS_REAL_METHODS.get());
     Assert.assertEquals(of.validate("hi"), ObjectFactory.State.VALID);
-    Assert.assertEquals(of.validate("hi", Optional.of(new Throwable())), ObjectFactory.State.VALID);
+    Assert.assertEquals(of.validate("hi", new Throwable()), ObjectFactory.State.VALID);
   }
 
   public void rejectExceptions() {
@@ -31,9 +31,9 @@ public class AbstractObjectFactoryTest {
     when(of.validateException(close)).thenReturn(ObjectFactory.State.CLOSE_POOL);
 
     // then
-    Assert.assertEquals(of.validate("hi", Optional.of(valid)), ObjectFactory.State.VALID);
-    Assert.assertEquals(of.validate("hi", Optional.of(invalid)), ObjectFactory.State.INVALID);
-    Assert.assertEquals(of.validate("hi", Optional.of(close)), ObjectFactory.State.CLOSE_POOL);
+    Assert.assertEquals(of.validate("hi", valid), ObjectFactory.State.VALID);
+    Assert.assertEquals(of.validate("hi", invalid), ObjectFactory.State.INVALID);
+    Assert.assertEquals(of.validate("hi", close), ObjectFactory.State.CLOSE_POOL);
   }
 
   public void rejectObject() {
@@ -47,8 +47,8 @@ public class AbstractObjectFactoryTest {
     when(of.validate(close)).thenReturn(ObjectFactory.State.CLOSE_POOL);
 
     // then
-    Assert.assertEquals(of.validate(valid, Optional.of(new Throwable())), ObjectFactory.State.VALID);
-    Assert.assertEquals(of.validate(invalid, Optional.of(new Throwable())), ObjectFactory.State.INVALID);
-    Assert.assertEquals(of.validate(close, Optional.of(new Throwable())), ObjectFactory.State.CLOSE_POOL);
+    Assert.assertEquals(of.validate(valid, new Throwable()), ObjectFactory.State.VALID);
+    Assert.assertEquals(of.validate(invalid, new Throwable()), ObjectFactory.State.INVALID);
+    Assert.assertEquals(of.validate(close, new Throwable()), ObjectFactory.State.CLOSE_POOL);
   }
 }

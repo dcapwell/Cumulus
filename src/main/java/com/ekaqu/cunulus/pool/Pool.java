@@ -40,7 +40,7 @@ public interface Pool<T> extends Service {
    *
    * @throws ClosedPoolException pool is closed
    */
-  void returnToPool(T obj, Optional<? extends Throwable> throwable);
+  void returnToPool(T obj, Throwable throwable);
 
   /**
    * How many elements are currently in the pool

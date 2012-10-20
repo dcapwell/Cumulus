@@ -36,7 +36,7 @@ public class ObjectPoolTest {
 
       LOGGER.info("Got object {}", obj);
       Assert.assertTrue(index < 5);
-      pool.returnToPool(obj, Optional.of(new Throwable()));
+      pool.returnToPool(obj, new Throwable());
     }
 
     LOGGER.info("Pool {}", pool);
@@ -53,7 +53,7 @@ public class ObjectPoolTest {
       executorService.schedule(new Runnable() {
         @Override
         public void run() {
-          pool.returnToPool(obj, Optional.of(new Throwable()));
+          pool.returnToPool(obj, new Throwable());
         }
       }, 500, TimeUnit.MILLISECONDS);
     }
@@ -83,7 +83,7 @@ public class ObjectPoolTest {
       executorService.schedule(new Runnable() {
         @Override
         public void run() {
-          pool.returnToPool(obj, Optional.of(new Throwable()));
+          pool.returnToPool(obj, new Throwable());
         }
       }, 500, TimeUnit.MILLISECONDS);
     }
@@ -112,11 +112,10 @@ public class ObjectPoolTest {
     }
 
     String num = "five";
-    Optional<Throwable> opt = Optional.absent();
-    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.INVALID);
+    when(factory.validate(num, null)).thenReturn(ObjectFactory.State.INVALID);
 
     // then
-    pool.returnToPool(num, opt);
+    pool.returnToPool(num, null);
     Assert.assertEquals(pool.size(), 0);
     verify(factory).cleanup(num);
   }
@@ -137,11 +136,10 @@ public class ObjectPoolTest {
     }
 
     String num = "five";
-    Optional<Throwable> opt = Optional.absent();
-    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.CLOSE_POOL);
+    when(factory.validate(num, null)).thenReturn(ObjectFactory.State.CLOSE_POOL);
 
     // then
-    pool.returnToPool(num, opt);
+    pool.returnToPool(num, null);
     Assert.assertEquals(pool.size(), 0);
     Assert.assertFalse(pool.isRunning(), "Currently running");
   }
@@ -157,11 +155,10 @@ public class ObjectPoolTest {
     LOGGER.info("Pool {}", pool);
 
     String num = "five";
-    Optional<Throwable> opt = Optional.absent();
-    when(factory.validate(num, opt)).thenReturn(ObjectFactory.State.VALID);
+    when(factory.validate(num, null)).thenReturn(ObjectFactory.State.VALID);
 
     // then
-    pool.returnToPool(num, opt);
+    pool.returnToPool(num, null);
     Assert.assertEquals(pool.size(), 2);
     Assert.assertTrue(pool.isRunning(), "Currently running");
   }

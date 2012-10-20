@@ -1,9 +1,14 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.retry.RetryException;
+import com.ekaqu.cunulus.retry.Retryers;
+import com.ekaqu.cunulus.util.Block;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
+import com.google.common.io.Closeables;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -16,7 +21,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -274,13 +282,61 @@ public class PoolExperiment {
     Closeable closeable = pool.get();
     try {
       // some logic
-      closeable.close();
+      Closeables.close(closeable, true);
       // some logic
 
       pool.returnConnection(closeable);
     } catch (IOException e) {
       pool.returnToPoolWithException(closeable, e);
       // this could be error prone since there are two methods with similar names/params
+    }
+  }
+
+  public void executingPool() {
+    // given
+    com.ekaqu.cunulus.pool.ObjectFactory<String> factory = mock(com.ekaqu.cunulus.pool.ObjectFactory.class);
+    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, 2, 2, MoreExecutors.sameThreadExecutor());
+
+    ExecutingPool<String> executingPool = ExecutingPool.executor(pool);
+
+    // when
+    when(factory.get()).thenReturn("a", "b");
+    when(factory.validate("a", null)).thenReturn(com.ekaqu.cunulus.pool.ObjectFactory.State.VALID);
+    when(factory.validate("b", null)).thenReturn(com.ekaqu.cunulus.pool.ObjectFactory.State.VALID);
+    executingPool.startAndWait();
+
+    // then
+    for(int i = 0; i < 4; i++) {
+      executingPool.execute(new Block<String>() {
+        @Override
+        public void apply(final String operand) {
+          LOGGER.info("Operand given {}", operand);
+        }
+      });
+    }
+  }
+
+  @Test(expectedExceptions = RetryException.class)
+  public void retryingExecutingPool() {
+    // given
+    com.ekaqu.cunulus.pool.ObjectFactory<String> factory = mock(AbstractObjectFactory.class, CALLS_REAL_METHODS);
+    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, 2, 2, MoreExecutors.sameThreadExecutor());
+    com.ekaqu.cunulus.retry.Retryer retryer = Retryers.newRetryer(2);
+
+    ExecutingPool<String> executingPool = ExecutingPool.retryingExecutor(pool, retryer);
+
+    // when
+    doReturn("a").when(factory).get();
+    executingPool.startAndWait();
+
+    // then
+    for(int i = 0; i < 4; i++) {
+      executingPool.execute(new Block<String>() {
+        @Override
+        public void apply(final String operand) {
+          throw new RuntimeException("Operand " + operand);
+        }
+      });
     }
   }
 

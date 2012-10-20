@@ -24,7 +24,7 @@ public interface ObjectFactory<T> extends Supplier<T> {
    * @param error Exception thrown when last used the object
    * @return current state of the object
    */
-  State validate(T obj, Optional<? extends Throwable> error);
+  State validate(T obj, Throwable error);
 
   /**
    * Clean up any resources belonging to the given object
