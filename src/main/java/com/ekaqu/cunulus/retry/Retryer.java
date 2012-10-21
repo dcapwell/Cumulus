@@ -28,6 +28,7 @@ public interface Retryer {
 
   /**
    * Create a proxy around the given target that will retry method execution
+   *
    * @param interfaceType interface to proxy with
    */
   <T> T newProxy(T target, Class<T> interfaceType);

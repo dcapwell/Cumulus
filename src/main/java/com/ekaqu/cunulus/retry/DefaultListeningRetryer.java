@@ -9,15 +9,31 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Default implementation of the {@link ListeningRetryer} interface.  This uses an optional Predicate to allow stopping
+ * early for given {@link Exception}s.  All retry operations are done in a {@link ListeningExecutorService}.
+ *
+ * This class uses recursion to do retries so large amount of retries might cause stack issues.
+ *
+ * The thread safety of this class is dependent on the {@link ListeningExecutorService} and the {@link Retryer} provided.
+ */
 @Beta
 class DefaultListeningRetryer implements ListeningRetryer {
   private final ListeningExecutorService executorService;
   private final Retryer retryer;
 
+  /**
+   * Creates a new ListeningRetryer that will execute retry operations in a executorService
+   *
+   * Decorates the executorService to be a {@link ListeningExecutorService}
+   */
   public DefaultListeningRetryer(final ExecutorService executorService, final Retryer retryer) {
     this(MoreExecutors.listeningDecorator(executorService), retryer);
   }
 
+  /**
+   * Creates a new ListeningRetryer that will execute retry operations in a executorService
+   */
   public DefaultListeningRetryer(final ListeningExecutorService executorService, final Retryer retryer) {
     this.executorService = Preconditions.checkNotNull(executorService);
     this.retryer = Preconditions.checkNotNull(retryer);
