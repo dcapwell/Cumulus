@@ -7,6 +7,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <p/>
  * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
  * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicLong}
+ *
+ * If you can get away with using a primitive long, use that instead of this class since its faster.
  */
 @NotThreadSafe
 public class LongCounter extends Number {
