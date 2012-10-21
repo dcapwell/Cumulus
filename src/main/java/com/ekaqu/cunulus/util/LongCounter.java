@@ -5,10 +5,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Basic counter class backed by a long.  Methods are the same as AtomicLong so it should be easy to swap between the two.
  * <p/>
- * This class is not thread safe
+ * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
+ * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicLong}
  */
 @NotThreadSafe
 public class LongCounter extends Number {
+
   private long counter;
 
   public LongCounter(long i) {

@@ -72,6 +72,7 @@
           <groups>Unit</groups>
           <parallel>classes</parallel>
           <threadCount>2</threadCount>
+          <excludedGroups>Experiment</excludedGroups>
         </configuration>
       </plugin>
       <plugin>

@@ -5,10 +5,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Basic counter class backed by a int.  Methods are the same as AtomicInteger so it should be easy to swap between the two.
  * <p/>
- * This class is not thread safe
+ * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
+ * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicInteger}
  */
 @NotThreadSafe
 public class IntegerCounter extends Number {
+
   private int counter;
 
   public IntegerCounter(int i) {
