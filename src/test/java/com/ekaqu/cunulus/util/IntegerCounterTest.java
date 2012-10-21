@@ -17,6 +17,7 @@ public class IntegerCounterTest {
       .setNameFormat(IntegerCounterTest.class.getSimpleName())
       .build();
   private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
+  private static final int EXECUTION_COUNT = 50000;  // 50000 is when you really see larger difference
 
   public void testGet() throws Exception {
     IntegerCounter counter = new IntegerCounter(5);
@@ -134,7 +135,7 @@ public class IntegerCounterTest {
   public void concurrentIncrement() throws InterruptedException {
     ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
     final IntegerCounter counter = new IntegerCounter();
-    for(int i = 0; i < 500; i++) {
+    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       executorService.submit(new Runnable() {
         @Override
         public void run() {
@@ -152,7 +153,7 @@ public class IntegerCounterTest {
   public void concurrentDecrement() throws InterruptedException {
     ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
     final IntegerCounter counter = new IntegerCounter(500);
-    for(int i = 0; i < 500; i++) {
+    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       executorService.submit(new Runnable() {
         @Override
         public void run() {
@@ -170,7 +171,7 @@ public class IntegerCounterTest {
   public void concurrentEnvironment() throws InterruptedException {
     ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
     final IntegerCounter counter = new IntegerCounter();
-    for(int i = 0; i < 500; i++) {
+    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
