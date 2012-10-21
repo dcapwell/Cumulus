@@ -17,15 +17,15 @@ import java.util.concurrent.ThreadFactory;
  *
  * Example of a basic object pool
  * {@code
-Pool<T> pool = new PoolBuilder<String>()
+Pool<T> pool = new PoolBuilder<T>()
   .objectFactory(factory)
   .build();
 }
  *
  * This class can also be used to build KeyedPools
  * {@code
-KeyedPool<K, V> pool = new PoolBuilder<String>()
-  .withKeyType(String.class)
+KeyedPool<K, V> pool = new PoolBuilder<K>()
+  .withKeyType(V.class)
     .keySupplier(factory)
     .factory(factoryFactory)
     .build();
