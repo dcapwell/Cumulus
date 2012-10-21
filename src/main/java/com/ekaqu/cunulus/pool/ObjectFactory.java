@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.pool;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
 public interface ObjectFactory<T> extends Supplier<T> {
@@ -21,6 +20,7 @@ public interface ObjectFactory<T> extends Supplier<T> {
 
   /**
    * Checks the current state of an object to see if it is safe to reuse
+   *
    * @param error Exception thrown when last used the object
    * @return current state of the object
    */

@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.pool;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.AbstractService;
@@ -18,14 +19,15 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
 
   /**
    * @see com.google.common.util.concurrent.AbstractService#doStart()
-   * {@inheritDoc}
+   *      {@inheritDoc}
    */
   @Override
   protected void doStart() {
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
 
     try {
-      while (active.get() < corePoolSize && expand()) { }
+      while (active.get() < corePoolSize && expand()) {
+      }
       notifyStarted();
     } catch (Exception e) {
       notifyFailed(e);
@@ -34,13 +36,13 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
 
   /**
    * @see com.google.common.util.concurrent.AbstractService#doStop()
-   * {@inheritDoc}
+   *      {@inheritDoc}
    */
   @Override
   protected void doStop() {
     Preconditions.checkState(State.STOPPING.equals(state()), "Not in the stopping state: " + state());
 
-    try{
+    try {
       // clean up pooled objects
       clear();
 
@@ -54,7 +56,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * Same as {@link Pool#borrow(long, java.util.concurrent.TimeUnit)} with 0 and {@link TimeUnit#MILLISECONDS}
    *
    * @see Pool#borrow(long, java.util.concurrent.TimeUnit)
-   * {@inheritDoc}
+   *      {@inheritDoc}
    */
   @Override
   public Optional<T> borrow() {
@@ -67,7 +69,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * Same as {@link Pool#returnToPool(Object, Throwable)} with {@link Throwable} = null
    *
    * @see Pool#returnToPool(Object, Throwable)
-   * {@inheritDoc}
+   *      {@inheritDoc}
    */
   @Override
   public void returnToPool(final T obj) {
@@ -88,15 +90,16 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append(getClass().getSimpleName());
-    sb.append("{state=").append(state());
-    sb.append(", active=").append(getActiveCount());
-    sb.append(", size=").append(size());
-    sb.append(", corePoolSize=").append(getCorePoolSize());
-    sb.append(", maxPoolSize=").append(getMaxPoolSize());
-    sb.append('}');
-    return sb.toString();
+    return toStringBuilder().toString();
+  }
+
+  protected Objects.ToStringHelper  toStringBuilder() {
+    return Objects.toStringHelper(getClass())
+        .add("state", state())
+        .add("active", getActiveCount())
+        .add("size", size())
+        .add("corePoolSize", getCorePoolSize())
+        .add("maxPoolSize", getMaxPoolSize());
   }
 
   public int getCorePoolSize() {
@@ -124,20 +127,20 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
 
   protected boolean expand() {
     boolean added = false;
-    if(active.get() < getMaxPoolSize()) {
+    if (active.get() < getMaxPoolSize()) {
       // there is room to expand, so lets create and add an object
       added = createAndAdd();
-      if(added) active.incrementAndGet();
+      if (added) active.incrementAndGet();
     }
     return added;
   }
 
   protected boolean shrink() {
     boolean shrunk = false;
-    if(active.get() > getCorePoolSize()) {
+    if (active.get() > getCorePoolSize()) {
       // only shrink if active count is larger than core size
       int count = shrink(active.get() - getCorePoolSize());
-      if(count > 0) {
+      if (count > 0) {
         active.addAndGet(count * -1);
         shrunk = true;
       }
@@ -158,6 +161,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
 
   /**
    * Checks if the current pool is full.  If a pool is full then a minimum of {@link com.ekaqu.cunulus.pool.AbstractPool#getCorePoolSize()} is available
+   *
    * @return if full or not
    */
   protected boolean isFull() {
@@ -167,12 +171,14 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   /**
    * Create a new object and add it to the pool if pool size is not too large. This method shouldn't create
    * new objects if max size has not been surceased.
+   *
    * @return true if added object to pool
    */
   protected abstract boolean createAndAdd();
 
   /**
    * Shrinks the current pool by shrinkBy.  If size is 10 and shrinkBy is 2, then the end result should be 8.
+   *
    * @param shrinkBy how many objects should be removed
    * @return how many objects were removed.  Should always be 0 or more
    */

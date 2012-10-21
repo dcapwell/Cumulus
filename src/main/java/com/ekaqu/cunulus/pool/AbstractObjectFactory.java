@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.pool;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 /**

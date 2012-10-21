@@ -87,7 +87,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
     }
 
     // if pool size has changed, then attempt to shrink
-    if(getActiveCount() > getMaxPoolSize()) {
+    if (getActiveCount() > getMaxPoolSize()) {
       shrink();
     }
   }
@@ -95,6 +95,13 @@ public class ObjectPool<T> extends AbstractPool<T> {
   @Override
   public int size() {
     return this.available.size();
+  }
+
+  @Override
+  public String toString() {
+    return toStringBuilder()
+        .add("available", available)
+        .toString();
   }
 
   @Override
@@ -115,7 +122,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
     available.drainTo(objects, shrinkBy);
 
     int numObjects = objects.size();
-    for(final T obj : objects) {
+    for (final T obj : objects) {
       objectFactory.cleanup(obj);
     }
     return numObjects;

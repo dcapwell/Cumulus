@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.util.Sized;
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.Service;
 
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> type of the object in the pool
  */
+@Beta
 public interface Pool<T> extends Service, Sized {
 
   /**
@@ -42,14 +44,4 @@ public interface Pool<T> extends Service, Sized {
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj, Throwable throwable);
-
-//  /**
-//   * How many elements are currently in the pool
-//   */
-//  int size();
-//
-//  /**
-//   * Check whether the pool is empty or not
-//   */
-//  boolean isEmpty();
 }

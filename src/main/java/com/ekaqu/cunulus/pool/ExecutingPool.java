@@ -10,31 +10,31 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Wrapper around a pool that enables a more functional style access to the contents of a pool.
- *
+ * <p/>
  * When working with a pool, the normal code flow is as follows: {@code
-final Optional<T> opt = pool.borrow();
-if(opt.isPresent()) {
-  final T obj = opt.get();
-  try {
-    LOGGER.info("Object given {}", obj);
-    pool.returnToPool(obj);
-  } catch (Throwable t) {
-    pool.returnToPool(obj, t);
-  }
-}
-}
+ * final Optional<T> opt = pool.borrow();
+ * if(opt.isPresent()) {
+ * final T obj = opt.get();
+ * try {
+ * LOGGER.info("Object given {}", obj);
+ * pool.returnToPool(obj);
+ * } catch (Throwable t) {
+ * pool.returnToPool(obj, t);
+ * }
+ * }
+ * }
  * With the {@link ExecutingPool} you can just pass in a function that will work with the pooled object and let
  * {@link ExecutingPool} handle returning the object to the pool.
- *
+ * <p/>
  * Example: {@code
-executingPool.execute(new Block<T>() {
-  @Override
-  public void apply(final T obj) {
-    LOGGER.info("Object given {}", obj);
-  }
-});
- }
+ * executingPool.execute(new Block<T>() {
  *
+ * @Override public void apply(final T obj) {
+ * LOGGER.info("Object given {}", obj);
+ * }
+ * });
+ * }
+ * <p/>
  * When exceptions are thrown, they will be propagated up as a RuntimeException.  If the exception is of type {@link Error}
  * or {@link RuntimeException} then it is rethrown
  */
@@ -45,6 +45,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
 
   /**
    * Execute the given block passing in a valid from the pool.
+   *
    * @return if pool had an element and that element was given to the block
    */
   abstract boolean execute(Block<T> block);
@@ -53,7 +54,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
    * Execute the given block passing in a valid from the pool.
    *
    * @param waitTime time to wait for a pooled object to show up.
-   * @param unit time unit used to determine how long to wait for an object to show up.
+   * @param unit     time unit used to determine how long to wait for an object to show up.
    * @return if pool had an element and that element was given to the block
    */
   abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
@@ -67,7 +68,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
       @Override
       boolean execute(final Block<T> block) {
         final Optional<T> opt = pool.borrow();
-        if(opt.isPresent()) {
+        if (opt.isPresent()) {
           final T obj = opt.get();
           try {
             block.apply(obj);
@@ -85,7 +86,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
       @Override
       boolean execute(final Block<T> block, final long waitTime, final TimeUnit unit) {
         final Optional<T> opt = pool.borrow(waitTime, unit);
-        if(opt.isPresent()) {
+        if (opt.isPresent()) {
           final T obj = opt.get();
           try {
             block.apply(obj);
@@ -115,7 +116,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             @Override
             public Boolean call() throws Exception {
               final Optional<T> opt = pool.borrow();
-              if(opt.isPresent()) {
+              if (opt.isPresent()) {
                 final T obj = opt.get();
                 try {
                   block.apply(obj);
@@ -143,7 +144,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
             @Override
             public Boolean call() throws Exception {
               final Optional<T> opt = pool.borrow(waitTime, unit);
-              if(opt.isPresent()) {
+              if (opt.isPresent()) {
                 final T obj = opt.get();
                 try {
                   block.apply(obj);
