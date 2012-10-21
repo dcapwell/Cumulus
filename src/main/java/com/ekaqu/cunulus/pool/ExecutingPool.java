@@ -48,7 +48,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
    *
    * @return if pool had an element and that element was given to the block
    */
-  abstract boolean execute(Block<T> block);
+  public abstract boolean execute(Block<T> block);
 
   /**
    * Execute the given block passing in a valid from the pool.
@@ -57,7 +57,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
    * @param unit     time unit used to determine how long to wait for an object to show up.
    * @return if pool had an element and that element was given to the block
    */
-  abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
+  public abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
 
   /**
    * Creates a new {@link ExecutingPool}.  {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)} will call
@@ -66,7 +66,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public static <T> ExecutingPool<T> executor(final Pool<T> pool) {
     return new ExecutingPool<T>(pool) {
       @Override
-      boolean execute(final Block<T> block) {
+      public boolean execute(final Block<T> block) {
         final Optional<T> opt = pool.borrow();
         if (opt.isPresent()) {
           final T obj = opt.get();
@@ -84,7 +84,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
       }
 
       @Override
-      boolean execute(final Block<T> block, final long waitTime, final TimeUnit unit) {
+      public boolean execute(final Block<T> block, final long waitTime, final TimeUnit unit) {
         final Optional<T> opt = pool.borrow(waitTime, unit);
         if (opt.isPresent()) {
           final T obj = opt.get();
@@ -110,7 +110,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public static <T> ExecutingPool<T> retryingExecutor(final Pool<T> pool, final Retryer retryer) {
     return new ExecutingPool<T>(pool) {
       @Override
-      boolean execute(final Block<T> block) {
+      public boolean execute(final Block<T> block) {
         try {
           return retryer.submitWithRetry(new Callable<Boolean>() {
             @Override
@@ -138,7 +138,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
       }
 
       @Override
-      boolean execute(final Block<T> block, final long waitTime, final TimeUnit unit) {
+      public boolean execute(final Block<T> block, final long waitTime, final TimeUnit unit) {
         try {
           return retryer.submitWithRetry(new Callable<Boolean>() {
             @Override
