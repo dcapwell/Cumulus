@@ -30,7 +30,7 @@ public class ExecutingPoolTest {
     doReturn("a").when(factory).get();
     when(factory.get()).thenReturn("a", "b", "c", "d");
 
-    pool = new ObjectPool<String>(factory, 2, 4, MoreExecutors.sameThreadExecutor());
+    pool = new ObjectPool<String>(factory, MoreExecutors.sameThreadExecutor(), 2, 4);
     pool.startAndWait();
   }
 

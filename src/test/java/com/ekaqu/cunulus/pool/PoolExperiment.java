@@ -33,6 +33,8 @@ import static org.mockito.Mockito.when;
 public class PoolExperiment {
   private static final Logger LOGGER = LoggerFactory.getLogger(PoolExperiment.class.getName());
 
+  private final ExecutorService executorService = MoreExecutors.sameThreadExecutor();
+
   public interface Pool<T> {
     T get();
     void returnConnection(T connection);
@@ -295,7 +297,7 @@ public class PoolExperiment {
   public void executingPool() {
     // given
     com.ekaqu.cunulus.pool.ObjectFactory<String> factory = mock(com.ekaqu.cunulus.pool.ObjectFactory.class);
-    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, 2, 2, MoreExecutors.sameThreadExecutor());
+    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, executorService, 2, 2);
 
     ExecutingPool<String> executingPool = ExecutingPool.executor(pool);
 
@@ -320,7 +322,7 @@ public class PoolExperiment {
   public void retryingExecutingPool() {
     // given
     com.ekaqu.cunulus.pool.ObjectFactory<String> factory = mock(AbstractObjectFactory.class, CALLS_REAL_METHODS);
-    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, 2, 2, MoreExecutors.sameThreadExecutor());
+    com.ekaqu.cunulus.pool.Pool<String> pool = new ObjectPool<String>(factory, executorService, 2, 2);
     com.ekaqu.cunulus.retry.Retryer retryer = Retryers.newRetryer(2);
 
     ExecutingPool<String> executingPool = ExecutingPool.retryingExecutor(pool, retryer);

@@ -4,79 +4,35 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.AbstractService;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-//TODO implement pool shrinking
+//TODO add shrinking
 //TODO add JMX
-//TODO allow max/core to change
-public class ObjectPool<T> extends AbstractService implements Pool<T> {
-  private final int maximumPoolSize, corePoolSize;
-  private final AtomicInteger availableCount = new AtomicInteger();
+public class ObjectPool<T> extends AbstractPool<T> {
+
+  private final BlockingQueue<T> available = Queues.newLinkedBlockingQueue();
+
   private final ObjectFactory<T> objectFactory;
-  private final BlockingQueue<T> available;
   private final ExecutorService executorService;
+
   private Runnable createObjectRunnable = new Runnable() {
     @Override
     public void run() {
-      createAndAdd();
+      expand();
     }
   };
 
-  public ObjectPool(final ObjectFactory<T> objectFactory,
-                    final int corePoolSize, final int maximumPoolSize,
-                    final ExecutorService executorService) {
-    Preconditions.checkArgument(
-        corePoolSize >= 0
-            && maximumPoolSize > 0
-            && maximumPoolSize >= corePoolSize
-    );
+  public ObjectPool(final ObjectFactory<T> objectFactory, final ExecutorService executorService,
+                    final int corePoolSize, final int maxPoolSize) {
+    this.objectFactory = objectFactory;
+    this.executorService = executorService;
 
-    this.objectFactory = Preconditions.checkNotNull(objectFactory);
-
-    this.maximumPoolSize = maximumPoolSize;
-    this.corePoolSize = corePoolSize;
-
-    this.executorService = Preconditions.checkNotNull(executorService);
-    this.available = Queues.newLinkedBlockingQueue(maximumPoolSize);
-  }
-
-  @Override
-  protected void doStart() {
-    Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
-    try {
-      while (availableCount.get() < corePoolSize && createAndAdd()) { }
-      notifyStarted();
-    } catch (Exception e) {
-      notifyFailed(e);
-    }
-  }
-
-  @Override
-  protected void doStop() {
-    Preconditions.checkState(State.STOPPING.equals(state()), "Not in the stopping state: " + state());
-
-    // clean up pooled objects
-    List<T> objs = Lists.newArrayList();
-    available.drainTo(objs);
-    for(T obj : objs) {
-      objectFactory.cleanup(obj);
-    }
-
-    notifyStopped();
-  }
-
-  @Override
-  public Optional<T> borrow() {
-    checkNotClosed();
-
-    return Optional.fromNullable(this.available.poll());
+    setPoolSizes(corePoolSize, maxPoolSize);
   }
 
   @Override
@@ -101,12 +57,7 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
   }
 
   @Override
-  public void returnToPool(final T obj) {
-    returnToPool(obj, null);
-  }
-
-  @Override
-  public void returnToPool(T obj, Throwable throwable) {
+  public void returnToPool(final T obj, final Throwable throwable) {
     Preconditions.checkNotNull(obj);
 
     checkNotClosed();
@@ -116,7 +67,7 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
     switch (state) {
       case VALID:
         // just add back to the pool if pool can support it
-        if(available.size() >= availableCount.get()) {
+        if (isFull()) {
           // clean up since pool has enough elements right now
           objectFactory.cleanup(obj);
         } else {
@@ -134,6 +85,11 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
       default:
         throw new UnsupportedOperationException("Unknown state " + state);
     }
+
+    // if pool size has changed, then attempt to shrink
+    if(getActiveCount() > getMaxPoolSize()) {
+      shrink();
+    }
   }
 
   @Override
@@ -142,60 +98,42 @@ public class ObjectPool<T> extends AbstractService implements Pool<T> {
   }
 
   @Override
-  public boolean isEmpty() {
-    return this.available.isEmpty();
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("ObjectPool");
-    sb.append("{corePoolSize=").append(corePoolSize);
-    sb.append(", maximumPoolSize=").append(maximumPoolSize);
-    sb.append(", availableCount=").append(availableCount);
-    sb.append(", available=").append(available);
-    sb.append('}');
-    return sb.toString();
-  }
-
-  /**
-   * If the pool is not full, create a new object and add it to the pool
-   * @return object was added or not
-   */
-  private boolean createAndAdd() {
+  protected boolean createAndAdd() {
     boolean added = false;
-    //TODO should this lock? There is a chance that the number of objects is larger than max size
-    //TODO queue is capped so going larger shouldn't be an issue
-    if(maximumPoolSize > availableCount.get()) {
-      T obj = objectFactory.get();
-      if(available.offer(obj)) {
-        availableCount.incrementAndGet();
-        added = true;
-      } else {
-        objectFactory.cleanup(obj);
-        throw new IllegalStateException("Unable to add object to pool");
-      }
+    T obj = objectFactory.get();
+    if (available.offer(obj)) {
+      added = true;
+    } else {
+      objectFactory.cleanup(obj);
     }
     return added;
   }
 
-  /**
-   * Checks if the pool is closed, if so it throws a runtime exception
-   *
-   * @throws ClosedPoolException pool is closed
-   */
-  private void checkNotClosed() {
-    if (!isRunning()) {
-      throw new ClosedPoolException();
+  @Override
+  protected int shrink(final int shrinkBy) {
+    List<T> objects = Lists.newArrayList();
+    available.drainTo(objects, shrinkBy);
+
+    int numObjects = objects.size();
+    for(final T obj : objects) {
+      objectFactory.cleanup(obj);
+    }
+    return numObjects;
+  }
+
+  @Override
+  protected void clear() {
+    List<T> objs = Lists.newArrayList();
+    available.drainTo(objs);
+    for (T obj : objs) {
+      objectFactory.cleanup(obj);
     }
   }
 
   /**
-   * Attempts to create a new object in the background if the pool is allowed to expand
+   * calls {@link com.ekaqu.cunulus.pool.ObjectPool#expand()} in the background
    */
   private void tryCreateAsync() {
-    if(maximumPoolSize > availableCount.get()) {
-      Future<?> result = this.executorService.submit(createObjectRunnable);
-    }
+    Future<?> result = this.executorService.submit(createObjectRunnable);
   }
 }

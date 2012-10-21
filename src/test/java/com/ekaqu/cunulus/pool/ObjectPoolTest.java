@@ -24,7 +24,7 @@ public class ObjectPoolTest {
   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
 
   public void startPool() {
-    Pool<String> pool = new ObjectPool<String>(new StringFactory(), 5, 10, executorService);
+    Pool<String> pool = new ObjectPool<String>(new StringFactory(), executorService, 5, 10);
     pool.startAndWait();
 
     LOGGER.info("Pool {}", pool);
@@ -44,7 +44,7 @@ public class ObjectPoolTest {
   }
 
   public void expandingPool() {
-    final Pool<String> pool = new ObjectPool<String>(new StringFactory(), 5, 10, executorService);
+    final Pool<String> pool = new ObjectPool<String>(new StringFactory(), executorService, 5, 10);
     pool.startAndWait();
 
     for(int i = 0; i < 10; i++) {
@@ -71,7 +71,7 @@ public class ObjectPoolTest {
   }
 
   public void concurrentExpandingPool() {
-    final Pool<String> pool = new ObjectPool<String>(new StringFactory(), 5, 10, executorService);
+    final Pool<String> pool = new ObjectPool<String>(new StringFactory(), executorService, 5, 10);
     pool.startAndWait();
 
     LOGGER.info("Pool {}", pool);
@@ -85,7 +85,7 @@ public class ObjectPoolTest {
         public void run() {
           pool.returnToPool(obj, new Throwable());
         }
-      }, 500, TimeUnit.MILLISECONDS);
+      }, 5, TimeUnit.MILLISECONDS);
     }
 
     try {
@@ -100,7 +100,7 @@ public class ObjectPoolTest {
   public void rejectInvalid() {
     // given
     ObjectFactory<String> factory = mock(ObjectFactory.class);
-    final Pool<String> pool = new ObjectPool<String>(factory, 2, 4, executorService);
+    final Pool<String> pool = new ObjectPool<String>(factory, executorService, 2, 4);
 
     // when
     when(factory.get()).thenReturn("one", "two", "three", "four");
@@ -123,7 +123,7 @@ public class ObjectPoolTest {
   public void rejectIAndKillPool() {
     // given
     ObjectFactory<String> factory = mock(ObjectFactory.class);
-    final Pool<String> pool = new ObjectPool<String>(factory, 2, 4, executorService);
+    final Pool<String> pool = new ObjectPool<String>(factory, executorService, 2, 4);
 
     // when
     when(factory.get()).thenReturn("one", "two", "three", "four");
@@ -147,7 +147,7 @@ public class ObjectPoolTest {
   public void addMoreThanMax() {
     // given
     ObjectFactory<String> factory = mock(ObjectFactory.class);
-    final Pool<String> pool = new ObjectPool<String>(factory, 2, 2, executorService);
+    final Pool<String> pool = new ObjectPool<String>(factory, executorService, 2, 2);
 
     // when
     when(factory.get()).thenReturn("one", "two", "three", "four");
@@ -156,6 +156,27 @@ public class ObjectPoolTest {
 
     String num = "five";
     when(factory.validate(num, null)).thenReturn(ObjectFactory.State.VALID);
+
+    // then
+    pool.returnToPool(num, null);
+    Assert.assertEquals(pool.size(), 2);
+    Assert.assertTrue(pool.isRunning(), "Currently running");
+    verify(factory).cleanup(num);
+  }
+
+  public void shrinkPool() {
+    // given
+    ObjectFactory<String> factory = mock(ObjectFactory.class);
+    final AbstractPool<String> pool = new ObjectPool<String>(factory, executorService, 4, 4);
+
+    // when
+    when(factory.get()).thenReturn("one", "two", "three", "four");
+    pool.startAndWait();
+    LOGGER.info("Pool {}", pool);
+
+    String num = "five";
+    when(factory.validate(num, null)).thenReturn(ObjectFactory.State.VALID);
+    pool.setPoolSizes(2, 2);
 
     // then
     pool.returnToPool(num, null);
