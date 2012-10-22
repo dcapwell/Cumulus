@@ -80,9 +80,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
     switch (state) {
       case VALID:
         // just add back to the pool if pool can support it
-        if (!isFull()) {
-          available.offer(obj);
-        } else {
+        if (isFull() || ! available.offer(obj)) {
           // clean up since pool has enough elements right now
           objectFactory.cleanup(obj);
         }
@@ -158,6 +156,6 @@ public class ObjectPool<T> extends AbstractPool<T> {
    * calls {@link com.ekaqu.cunulus.pool.ObjectPool#expand()} in the background
    */
   private void tryCreateAsync() {
-    Future<?> result = this.executorService.submit(createObjectRunnable);
+    this.executorService.submit(createObjectRunnable);
   }
 }

@@ -13,6 +13,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -197,7 +198,8 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     poolMap.clear();
     ListenableFuture<List<State>> result = Futures.successfulAsList(futures);
     try {
-      List<State> statuses = result.get();
+      // if the states are not TERMINATED then there isn't really anything to do, so just ignore
+      result.get();
     } catch (Exception e) {
       // unable to clean up all the pools, log that this happened
       e.printStackTrace();
@@ -301,8 +303,8 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
        */
       NON_EMPTY {
         @Override
-        public boolean apply(final Map.Entry<Object, Pool<Object>> input) {
-          return !input.getValue().isEmpty();
+        public boolean apply(@Nullable final Map.Entry<Object, Pool<Object>> input) {
+          return (input == null)? false : !input.getValue().isEmpty();
         }
       };
 
