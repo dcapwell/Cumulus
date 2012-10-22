@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -265,6 +266,9 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     @Override
     public K choose(final Set<Map.Entry<K, Pool<V>>> values) {
       Collection<Map.Entry<K, Pool<V>>> filtered = Collections2.filter(values, predicate);
+      if(filtered.isEmpty()) {
+        return null;
+      }
       return filtered(filtered);
     }
 
@@ -335,11 +339,52 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
 
       @Override
       protected K filtered(final Collection<Map.Entry<K, Pool<V>>> filtered) {
-        if (filtered.size() == 0) {
-          return null;
-        }
         int thisIndex = Math.abs(index.getAndIncrement());
         Map.Entry<K, Pool<V>> entry = Iterables.get(filtered, thisIndex % filtered.size());
+        return entry.getKey();
+      }
+    };
+  }
+
+  /**
+   * Creates a new largestQueueSize KeyChooser which will pick the key with the most available pooled objects
+   * @param <K> key type
+   * @param <V> value type
+   * @return largest queue size key chooser
+   */
+  public static <K, V> KeyChooser<K, V> largestQueueSizeKeyChooser() {
+    return new AbstractKeyChooser<K, V>() {
+
+      @Override
+      protected K filtered(final Collection<Map.Entry<K, Pool<V>>> filtered) {
+        K largestKey = null;
+        int largestSize = -1;
+        for(final Map.Entry<K, Pool<V>> entry : filtered) {
+          final int size = entry.getValue().size();
+          if(size > largestSize) {
+            largestKey = entry.getKey();
+            largestSize = size;
+          }
+        }
+        return largestKey;
+      }
+    };
+  }
+
+  /**
+   * Creates a new random based KeyChooser which will pick a random element in the list
+   * @param <K> key type
+   * @param <V> value type
+   * @return random based KeyChooser
+   */
+  public static <K, V> KeyChooser<K, V> randomKeyChooser() {
+    return new AbstractKeyChooser<K, V>() {
+      private final Random random = new Random();
+
+      @Override
+      protected K filtered(final Collection<Map.Entry<K, Pool<V>>> filtered) {
+        int index = random.nextInt(filtered.size());
+        Map.Entry<K, Pool<V>> entry = Iterables.get(filtered, index);
         return entry.getKey();
       }
     };
