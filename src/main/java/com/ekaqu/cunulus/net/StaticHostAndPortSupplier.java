@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,12 +48,26 @@ public class StaticHostAndPortSupplier implements Supplier<HostAndPort> {
    * splittable by ','.
    * @param defaultPort defaultPort is connection string doesn't contain one
    */
-  public static StaticHostAndPortSupplier fromString(final String connections, int defaultPort) {
+  public static StaticHostAndPortSupplier fromString(final String connections, final int defaultPort) {
     List<HostAndPort> addresses = Lists.newArrayList();
     for(final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
       addresses.add(HostAndPort.fromString(pair).withDefaultPort(defaultPort));
     }
     return new StaticHostAndPortSupplier(addresses);
+  }
+
+  /**
+   * Creates a new StaticHostAndPortSupplier based off the host/port parts.
+   */
+  public static StaticHostAndPortSupplier fromParts(final String host, final int port) {
+    return new StaticHostAndPortSupplier(Arrays.asList(HostAndPort.fromParts(host, port)));
+  }
+
+  /**
+   * Creates a new StaticHostAndPortSupplier based off the host/port parts.
+   */
+  public static StaticHostAndPortSupplier of(final HostAndPort... hostAndPort) {
+    return new StaticHostAndPortSupplier(Arrays.asList(hostAndPort));
   }
 
   @Override
