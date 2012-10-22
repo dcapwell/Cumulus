@@ -10,7 +10,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 //TODO add shrinking
@@ -80,7 +79,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
     switch (state) {
       case VALID:
         // just add back to the pool if pool can support it
-        if (isFull() || ! available.offer(obj)) {
+        if (isFull() || !available.offer(obj)) {
           // clean up since pool has enough elements right now
           objectFactory.cleanup(obj);
         }
