@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param <V> value type
  */
 //TODO find a way to replace keySupplier, factory, and chooser... don't like them
+//TODO Replace KeyChooser with the new load balancers
 @ThreadSafe
 @Beta
 public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
