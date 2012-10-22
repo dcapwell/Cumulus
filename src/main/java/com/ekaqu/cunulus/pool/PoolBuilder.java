@@ -14,28 +14,36 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Helps build Pool objects with a streamlined interface and sensible defaults.
- *
+ * <p/>
  * Example of a basic object pool
  * {@code
-Pool<T> pool = new PoolBuilder<T>()
-  .objectFactory(factory)
-  .build();
-}
- *
+ * Pool<T> pool = new PoolBuilder<T>()
+ * .objectFactory(factory)
+ * .build();
+ * }
+ * <p/>
  * This class can also be used to build KeyedPools
  * {@code
-KeyedPool<K, V> pool = new PoolBuilder<K>()
-  .withKeyType(V.class)
-    .keySupplier(factory)
-    .factory(factoryFactory)
-    .build();
-}
- * @param <T>
+ * KeyedPool<K, V> pool = new PoolBuilder<V>()
+ * .withKeyType(K.class)
+ * .keySupplier(factory)
+ * .factory(factoryFactory)
+ * .build();
+ * }
+ *
+ * @param <T> type of the pool to build
  */
 public class PoolBuilder<T> {
   private static final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
 
+  /**
+   * Default max size a pool can expand to
+   */
   private static final int DEFAULT_MAX_POOL_SIZE = 10;
+
+  /**
+   * Default core size a pool should try to stay around
+   */
   private static final int DEFAULT_CORE_POOL_SIZE = DEFAULT_MAX_POOL_SIZE / 2;
 
   private ExecutorService executorService;
@@ -43,32 +51,66 @@ public class PoolBuilder<T> {
   private int maxPoolSize;
   private ObjectFactory<T> objectFactory;
 
+  /**
+   * Core size the pool should try to stay at
+   *
+   * @param corePoolSize size the pool should be around
+   * @return this builder
+   */
   public PoolBuilder<T> corePoolSize(final int corePoolSize) {
     Preconditions.checkArgument(corePoolSize >= 0, "core pool size must be positive or zero");
     this.corePoolSize = corePoolSize;
     return this;
   }
 
+  /**
+   * Max size the pool should reach
+   *
+   * @param maxPoolSize size the pool can reach.  Pool can not go over this value
+   * @return this builder
+   */
   public PoolBuilder<T> maxPoolSize(final int maxPoolSize) {
     Preconditions.checkArgument(maxPoolSize >= 0, "max pool size must be positive or zero");
     this.maxPoolSize = maxPoolSize;
     return this;
   }
 
+  /**
+   * Factory for creating values in a pool
+   *
+   * @param factory how pool should manage values
+   * @return this builder
+   */
   public PoolBuilder<T> objectFactory(final ObjectFactory<T> factory) {
     this.objectFactory = Preconditions.checkNotNull(factory);
     return this;
   }
 
+  /**
+   * ExecutorService pools may use to run background tasks
+   * <p/>
+   * If no executorService is provided a single threaded executor will be created for the pool
+   *
+   * @param executorService used for background tasks
+   * @return this builder
+   */
   public PoolBuilder<T> executorService(final ExecutorService executorService) {
     this.executorService = Preconditions.checkNotNull(executorService);
     return this;
   }
 
+  /**
+   * Get the executorService for this pool
+   */
   private ExecutorService getExecutorService() {
     return (executorService == null) ? executorService = Executors.newSingleThreadExecutor(threadFactory) : this.executorService;
   }
 
+  /**
+   * Build a new Pool
+   *
+   * @return newly created pool
+   */
   public Pool<T> build() {
     final ObjectFactory<T> objectFactory = Preconditions.checkNotNull(this.objectFactory);
     ExecutorService executorService = getExecutorService();
@@ -76,9 +118,9 @@ public class PoolBuilder<T> {
     int corePoolSize = this.corePoolSize;
     int maxPoolSize = this.maxPoolSize;
 
-    if(maxPoolSize == 0) {
+    if (maxPoolSize == 0) {
       maxPoolSize = DEFAULT_MAX_POOL_SIZE;
-      if(corePoolSize == 0) {
+      if (corePoolSize == 0) {
         corePoolSize = DEFAULT_CORE_POOL_SIZE;
       }
     }
@@ -88,69 +130,131 @@ public class PoolBuilder<T> {
     return pool;
   }
 
+  /**
+   * Build a new ExecutingPool
+   *
+   * @return newly created pool
+   */
   public ExecutingPool<T> buildExecutingPool() {
     return ExecutingPool.executor(build());
   }
 
+  /**
+   * Build a new ExecutingPool
+   *
+   * @param retryer used for retrying {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)}
+   * @return newly created pool
+   */
   public ExecutingPool<T> buildExecutingPool(final Retryer retryer) {
     return ExecutingPool.retryingExecutor(build(), retryer);
   }
 
+  /**
+   * Builder for KeyedPools
+   *
+   * @param clazz key class type
+   * @param <K>   key type
+   * @return new KeyedPoolBuilder
+   */
   public <K> KeyedPoolBuilder<K, T> withKeyType(Class<K> clazz) {
     return new KeyedPoolBuilder<K, T>();
   }
 
+  /**
+   * Builder for Keyed pools.  Should not use this class directly but from {@link PoolBuilder#withKeyType(Class)}
+   *
+   * @param <K> key type for pool
+   * @param <V> value type of pool.  This should be provided by {@link PoolBuilder}
+   */
   public class KeyedPoolBuilder<K, V> {
 
     private Supplier<K> keySupplier;
     private Factory<K, ObjectFactory<V>> factory;
-    private KeyedObjectPool.KeyChooser<K,V> chooser;
+    private KeyedObjectPool.KeyChooser<K, V> chooser;
     private int coreSizePerKey;
     private int maxSizePerKey;
 
-    public KeyedPoolBuilder<K,V> keySupplier(final Supplier<K> keySupplier) {
+    private KeyedPoolBuilder() {
+    }
+
+    /**
+     * Supplier for generating keys for the pool
+     *
+     * @param keySupplier for generating keys
+     * @return this builder
+     */
+    public KeyedPoolBuilder<K, V> keySupplier(final Supplier<K> keySupplier) {
       this.keySupplier = Preconditions.checkNotNull(keySupplier);
       return this;
     }
 
-    public KeyedPoolBuilder<K,V> factory(final Factory<K, ObjectFactory<V>> factory) {
+    /**
+     * Factory for creating ObjectFactorys needed for building a new Pool for a given Key
+     *
+     * @param factory for creating ObjectFactoriys
+     * @return this builder
+     */
+    public KeyedPoolBuilder<K, V> factory(final Factory<K, ObjectFactory<V>> factory) {
       this.factory = Preconditions.checkNotNull(factory);
       return this;
     }
 
-    public KeyedPoolBuilder<K,V> keyChooser(final KeyedObjectPool.KeyChooser<K, V> chooser) {
+    /**
+     * Chooses a key in the pool for {@link com.ekaqu.cunulus.pool.KeyedPool#borrow()}
+     *
+     * @param chooser picks keys in pool for consumption
+     * @return this builder
+     */
+    public KeyedPoolBuilder<K, V> keyChooser(final KeyedObjectPool.KeyChooser<K, V> chooser) {
       this.chooser = Preconditions.checkNotNull(chooser);
       return this;
     }
 
-    public KeyedPoolBuilder<K,V> coreSizePerKey(final int coreSizePerKey) {
+    /**
+     * What the core pool size should be for each generated pool inside the KeyedPool.
+     *
+     * @param coreSizePerKey coreSize for each pool within the KeyedPool
+     * @return this builder
+     */
+    public KeyedPoolBuilder<K, V> coreSizePerKey(final int coreSizePerKey) {
       Preconditions.checkArgument(coreSizePerKey >= 0, "core pool size must be positive or zero");
       this.coreSizePerKey = coreSizePerKey;
       return this;
     }
 
-    public KeyedPoolBuilder<K,V> maxSizePerKey(final int maxSizePerKey) {
+    /**
+     * What the max pool size should be for each generated pool inside the KeyedPool.
+     *
+     * @param maxSizePerKey maxSize for each pool within the KeyedPool
+     * @return this builder
+     */
+    public KeyedPoolBuilder<K, V> maxSizePerKey(final int maxSizePerKey) {
       Preconditions.checkArgument(maxSizePerKey >= 0, "max pool size must be positive or zero");
       this.maxSizePerKey = maxSizePerKey;
       return this;
     }
 
+    /**
+     * Build a new KeyedPool
+     *
+     * @return newly created KeyedPool
+     */
     public KeyedPool<K, V> build() {
       final Supplier<K> hostSupplier = Preconditions.checkNotNull(this.keySupplier);
       final Factory<K, ObjectFactory<V>> factory = Preconditions.checkNotNull(this.factory);
       final ExecutorService executorService = getExecutorService();
 
       KeyedObjectPool.KeyChooser<K, V> chooser = this.chooser;
-      if(chooser == null) {
+      if (chooser == null) {
         chooser = KeyedObjectPool.roundRobinKeyChooser();
       }
 
       int corePoolSize = PoolBuilder.this.corePoolSize;
       int maxPoolSize = PoolBuilder.this.maxPoolSize;
 
-      if(maxPoolSize == 0) {
+      if (maxPoolSize == 0) {
         maxPoolSize = DEFAULT_MAX_POOL_SIZE;
-        if(corePoolSize == 0) {
+        if (corePoolSize == 0) {
           corePoolSize = DEFAULT_CORE_POOL_SIZE;
         }
       }
@@ -158,9 +262,9 @@ public class PoolBuilder<T> {
       int corePoolSizePerKey = coreSizePerKey;
       int maxPoolSizePerKey = maxSizePerKey;
 
-      if(maxPoolSizePerKey == 0) {
+      if (maxPoolSizePerKey == 0) {
         maxPoolSizePerKey = DEFAULT_MAX_POOL_SIZE;
-        if(corePoolSizePerKey == 0) {
+        if (corePoolSizePerKey == 0) {
           corePoolSizePerKey = DEFAULT_CORE_POOL_SIZE;
         }
       }
@@ -171,15 +275,31 @@ public class PoolBuilder<T> {
       return pool;
     }
 
-    public ExecutingPool<Map.Entry<K,V>> buildExecutingPool() {
+    /**
+     * Build a new ExecutingPool backed by a KeyedPool
+     *
+     * @return newly created executingPool
+     */
+    public ExecutingPool<Map.Entry<K, V>> buildExecutingPool() {
       return ExecutingPool.executor(build());
     }
 
-    public ExecutingPool<Map.Entry<K,V>> buildExecutingPool(final Retryer retryer) {
+    /**
+     * Build a new ExecutingPool backed by a KeyedPool with retires\ for {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)}
+     *
+     * @param retryer for retry logic in execute
+     * @return newly created executingPool
+     */
+    public ExecutingPool<Map.Entry<K, V>> buildExecutingPool(final Retryer retryer) {
       return ExecutingPool.retryingExecutor(build(), retryer);
     }
   }
 
+  /**
+   * Start a pool and verify its in a good state
+   *
+   * @param pool newly created pool to start
+   */
   private static void startPool(final Pool<?> pool) {
     Service.State state = pool.startAndWait();
     switch (state) {

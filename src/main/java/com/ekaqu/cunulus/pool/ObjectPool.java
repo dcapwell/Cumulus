@@ -1,10 +1,12 @@
 package com.ekaqu.cunulus.pool;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -13,6 +15,17 @@ import java.util.concurrent.TimeUnit;
 
 //TODO add shrinking
 //TODO add JMX
+
+/**
+ * Default pool for generic objects.  This pool uses a {@link ObjectFactory} for creating new objects for the pool.
+ * <p/>
+ * This class is not thread safe because {@link ObjectPool#setPoolSizes(int, int)}.  This should be the only method
+ * that is not thread safe, so class is still marked as threadSafe
+ *
+ * @param <T> type of the pool
+ */
+@ThreadSafe
+@Beta
 public class ObjectPool<T> extends AbstractPool<T> {
 
   private final BlockingQueue<T> available = Queues.newLinkedBlockingQueue();
@@ -20,7 +33,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
   private final ObjectFactory<T> objectFactory;
   private final ExecutorService executorService;
 
-  private Runnable createObjectRunnable = new Runnable() {
+  private final Runnable createObjectRunnable = new Runnable() {
     @Override
     public void run() {
       expand();
@@ -67,11 +80,11 @@ public class ObjectPool<T> extends AbstractPool<T> {
     switch (state) {
       case VALID:
         // just add back to the pool if pool can support it
-        if (isFull()) {
+        if (!isFull()) {
+          available.offer(obj);
+        } else {
           // clean up since pool has enough elements right now
           objectFactory.cleanup(obj);
-        } else {
-          available.offer(obj);
         }
         break;
       case INVALID:
@@ -79,16 +92,20 @@ public class ObjectPool<T> extends AbstractPool<T> {
         objectFactory.cleanup(obj);
         break;
       case CLOSE_POOL:
+        // pool needs to close so clean obj and kill pool
         objectFactory.cleanup(obj);
-        stopAndWait();
+        stopAndWait(); // kills pool
         break;
       default:
-        throw new UnsupportedOperationException("Unknown state " + state);
+        throw new AssertionError("Unknown state " + state);
     }
 
     // if pool size has changed, then attempt to shrink
     if (getActiveCount() > getMaxPoolSize()) {
       shrink();
+    } else if (getActiveCount() < getCorePoolSize()) {
+      // active count is less than core, so expand
+      expand();
     }
   }
 

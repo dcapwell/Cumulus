@@ -9,6 +9,11 @@ import com.google.common.util.concurrent.AbstractService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Base for building a new pool
+ *
+ * @param <T> type of the pool
+ */
 @Beta
 public abstract class AbstractPool<T> extends AbstractService implements Pool<T> {
 
@@ -17,10 +22,6 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   private int corePoolSize = 0;
   private int maxPoolSize = 0;
 
-  /**
-   * @see com.google.common.util.concurrent.AbstractService#doStart()
-   *      {@inheritDoc}
-   */
   @Override
   protected void doStart() {
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
@@ -34,10 +35,6 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     }
   }
 
-  /**
-   * @see com.google.common.util.concurrent.AbstractService#doStop()
-   *      {@inheritDoc}
-   */
   @Override
   protected void doStop() {
     Preconditions.checkState(State.STOPPING.equals(state()), "Not in the stopping state: " + state());
@@ -56,7 +53,6 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * Same as {@link Pool#borrow(long, java.util.concurrent.TimeUnit)} with 0 and {@link TimeUnit#MILLISECONDS}
    *
    * @see Pool#borrow(long, java.util.concurrent.TimeUnit)
-   *      {@inheritDoc}
    */
   @Override
   public Optional<T> borrow() {
@@ -69,7 +65,6 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * Same as {@link Pool#returnToPool(Object, Throwable)} with {@link Throwable} = null
    *
    * @see Pool#returnToPool(Object, Throwable)
-   *      {@inheritDoc}
    */
   @Override
   public void returnToPool(final T obj) {
@@ -93,7 +88,12 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     return toStringBuilder().toString();
   }
 
-  protected Objects.ToStringHelper  toStringBuilder() {
+  /**
+   * Returns a ToStringHelper to help standardize toString format.
+   *
+   * @return ToStringHelper to use when overriding toString
+   */
+  protected Objects.ToStringHelper toStringBuilder() {
     return Objects.toStringHelper(getClass())
         .add("state", state())
         .add("active", getActiveCount())
@@ -114,6 +114,14 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     return active.get();
   }
 
+  /**
+   * Sets the core and max size for the pool.  Core size must be >= 0 and < max.
+   * <p/>
+   * This method is NOT thread safe.
+   *
+   * @param corePoolSize min size of the pool
+   * @param maxPoolSize  max size of the pool
+   */
   protected void setPoolSizes(final int corePoolSize, final int maxPoolSize) {
     Preconditions.checkArgument(
         corePoolSize >= 0
@@ -125,6 +133,11 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     this.maxPoolSize = maxPoolSize;
   }
 
+  /**
+   * Attempts to expand the pool by one
+   *
+   * @return if pool was expanded
+   */
   protected boolean expand() {
     boolean added = false;
     if (active.get() < getMaxPoolSize()) {
@@ -135,6 +148,11 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     return added;
   }
 
+  /**
+   * Attempts to shrink the pool to corePoolSize
+   *
+   * @return if pool shrunk.  If shrinking still left the pool larger than core, true should be returned
+   */
   protected boolean shrink() {
     boolean shrunk = false;
     if (active.get() > getCorePoolSize()) {
@@ -149,7 +167,9 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Checks if the pool is closed, if so it throws a runtime exception
+   * Checks if the pool is closed, if so it throws a runtime exception.
+   * <p/>
+   * This method should only be for internal checks and not targeted for users
    *
    * @throws ClosedPoolException pool is closed
    */

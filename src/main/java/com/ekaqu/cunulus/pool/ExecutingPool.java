@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Wrapper around a pool that enables a more functional style access to the contents of a pool.
+ * Decorates a pool and enables functional style access to the contents of a pool.
  * <p/>
  * When working with a pool, the normal code flow is as follows: {@code
  * final Optional<T> opt = pool.borrow();
@@ -44,14 +44,14 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   }
 
   /**
-   * Execute the given block passing in a valid from the pool.
+   * Execute the given block passing in a value from the pool.
    *
    * @return if pool had an element and that element was given to the block
    */
   public abstract boolean execute(Block<T> block);
 
   /**
-   * Execute the given block passing in a valid from the pool.
+   * Execute the given block passing in a value from the pool.
    *
    * @param waitTime time to wait for a pooled object to show up.
    * @param unit     time unit used to determine how long to wait for an object to show up.
@@ -60,8 +60,8 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
 
   /**
-   * Creates a new {@link ExecutingPool}.  {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)} will call
-   * the block at most one time.
+   * Creates a new {@link ExecutingPool} that.  This executing pool will call the execute block in the same thread and
+   * at most one time.
    */
   public static <T> ExecutingPool<T> executor(final Pool<T> pool) {
     return new ExecutingPool<T>(pool) {
@@ -104,8 +104,8 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   }
 
   /**
-   * Creates a new {@link ExecutingPool} with retries.  {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)} will
-   * be called multiple times based off the {@link Retryer}.
+   * Creates a new {@link ExecutingPool} with retries.  This executing pool will call the execute block in the same
+   * thread and potentially multiple times; based off the {@link Retryer}.
    */
   public static <T> ExecutingPool<T> retryingExecutor(final Pool<T> pool, final Retryer retryer) {
     return new ExecutingPool<T>(pool) {

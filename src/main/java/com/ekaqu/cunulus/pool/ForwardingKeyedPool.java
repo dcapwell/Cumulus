@@ -5,11 +5,24 @@ import com.google.common.base.Optional;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ForwardingKeyedPool<K,V> extends ForwardingPool<Map.Entry<K, V>> implements KeyedPool<K,V> {
+/**
+ * Forwards all requests to a given KeyedPool.  Use this to aid in decorating pool objects.
+ * <p/>
+ * This class should not be created directly.  It is targeted for extending.
+ *
+ * @param <K> key type of the pool
+ * @param <V> value type of the pool
+ */
+public class ForwardingKeyedPool<K, V> extends ForwardingPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
   private final KeyedPool<K, V> pool;
 
+  /**
+   * Creates a new ForwardingKeyedPool that forwards all requests to the given pool
+   *
+   * @param pool
+   */
   public ForwardingKeyedPool(final KeyedPool<K, V> pool) {
-    super(pool);
+    super(pool); // this should check that pool is not null
     this.pool = pool;
   }
 

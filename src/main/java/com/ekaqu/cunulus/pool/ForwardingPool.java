@@ -7,9 +7,21 @@ import com.google.common.util.concurrent.Service;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Forwards all requests to a given pool.  Use this to aid in decorating pool objects.
+ * <p/>
+ * This class should not be created directly.  It is targeted for extending.
+ *
+ * @param <T> type of the pool
+ */
 public class ForwardingPool<T> extends ForwardingService implements Pool<T> {
   private final Pool<T> pool;
 
+  /**
+   * Create a new ForwardingPool that forwards all requests to the give pool
+   *
+   * @param pool pool to forward to
+   */
   public ForwardingPool(final Pool<T> pool) {
     this.pool = Preconditions.checkNotNull(pool);
   }

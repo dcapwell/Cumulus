@@ -2,7 +2,16 @@ package com.ekaqu.cunulus.pool;
 
 import com.google.common.base.Supplier;
 
+/**
+ * This interface is responsible for creating, and cleanup after objects in a pool.
+ *
+ * @param <T> type of the object this factory generates
+ */
 public interface ObjectFactory<T> extends Supplier<T> {
+
+  /**
+   * Defines the health of a object that belongs to a pool.
+   */
   enum State {
     /**
      * The given object is in a good enough state to be regiven back to an Pool

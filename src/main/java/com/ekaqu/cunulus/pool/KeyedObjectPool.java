@@ -13,6 +13,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Iterator;
@@ -23,6 +24,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Basic KeyedPool for generic objects.
+ *
+ * @param <K>
+ * @param <V>
+ */
+@ThreadSafe
 @Beta
 public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
 
@@ -30,17 +38,29 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
 
   private final Supplier<K> hostSupplier;
   private final Factory<K, ObjectFactory<V>> factory;
-  private final KeyChooser<K,V> chooser;
+  private final KeyChooser<K, V> chooser;
   private final ExecutorService executorService;
   private final int coreSizePerKey, maxSizePerKey;
 
-  public KeyedObjectPool(final Supplier<K> hostSupplier,
+  /**
+   * Creates a new KeyedObjectPool
+   *
+   * @param keySupplier     creates new keys
+   * @param factory         creates new ObjectFactory based of keys from keySupplier
+   * @param executorService used for async internal logic
+   * @param chooser         chooses which keys to use for borrow
+   * @param coreSize        min size of active keys
+   * @param maxSize         max size of active keys
+   * @param coreSizePerKey  min size of objects in sub pools
+   * @param maxSizePerKey   max size of objects in sub pools
+   */
+  public KeyedObjectPool(final Supplier<K> keySupplier,
                          final Factory<K, ObjectFactory<V>> factory,
                          final ExecutorService executorService,
                          final KeyChooser<K, V> chooser,
                          final int coreSize, final int maxSize, final int coreSizePerKey, final int maxSizePerKey) {
     this.chooser = Preconditions.checkNotNull(chooser);
-    this.hostSupplier = Preconditions.checkNotNull(hostSupplier);
+    this.hostSupplier = Preconditions.checkNotNull(keySupplier);
     this.factory = Preconditions.checkNotNull(factory);
     this.executorService = Preconditions.checkNotNull(executorService);
 
@@ -50,22 +70,33 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     setPoolSizes(coreSize, maxSize);
   }
 
-  public KeyedObjectPool(final Supplier<K> hostSupplier,
+  /**
+   * Creates a new KeyedObjectPool. The KeyChooser used is a RoundRobin based chooser which filters empty pools
+   *
+   * @param keySupplier     creates new keys
+   * @param factory         creates new ObjectFactory based of keys from keySupplier
+   * @param executorService used for async internal logic
+   * @param coreSize        min size of active keys
+   * @param maxSize         max size of active keys
+   * @param coreSizePerKey  min size of objects in sub pools
+   * @param maxSizePerKey   max size of objects in sub pools
+   */
+  public KeyedObjectPool(final Supplier<K> keySupplier,
                          final Factory<K, ObjectFactory<V>> factory,
                          final ExecutorService executorService,
                          final int coreSize, final int maxSize, final int coreSizePerKey, final int maxSizePerKey) {
-    this(hostSupplier, factory, executorService, KeyedObjectPool.<K,V>roundRobinKeyChooser(),
+    this(keySupplier, factory, executorService, KeyedObjectPool.<K, V>roundRobinKeyChooser(),
         coreSize, maxSize, coreSizePerKey, maxSizePerKey);
   }
 
   @Override
   public Optional<Map.Entry<K, V>> borrow(final long timeout, final TimeUnit unit) {
     Set<Map.Entry<K, Pool<V>>> set = poolMap.entrySet();
-    if(set == null || set.isEmpty()) {
+    if (set == null || set.isEmpty()) {
       return Optional.absent();
     } else {
       K key = chooser.choose(set);
-      if(key == null) {
+      if (key == null) {
         //TODO this doesn't respect the timeout, so this exits early
         return Optional.absent();
       } else {
@@ -198,22 +229,30 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
 
   /**
    * Choose a key given a set of entries
-   *
+   * <p/>
    * This may be slow since it involves many iterations.  A faster solution may be needed.
+   *
    * @param <K> Key
    * @param <V> Value
    */
   @Beta
-  public interface KeyChooser<K,V> {
+  public interface KeyChooser<K, V> {
 
     /**
      * Choose a key given a set of entries
+     *
      * @param values A non empty set of map values
      * @return a valid key from the set
      */
     K choose(Set<Map.Entry<K, Pool<V>>> values);
   }
 
+  /**
+   * A KeyChooser that uses a set of Predicates to filter out entries before choosing
+   *
+   * @param <K> key type
+   * @param <V> value type
+   */
   public static abstract class AbstractKeyChooser<K, V> implements KeyChooser<K, V> {
 
     private Predicate<Map.Entry<K, Pool<V>>> predicate = EntryPredicates.NON_EMPTY.withNarrowedType();
@@ -224,38 +263,74 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
       return filtered(filtered);
     }
 
+    /**
+     * Get the predicate for this chooser
+     *
+     * @return predicate for this chooser
+     */
     public Predicate<Map.Entry<K, Pool<V>>> getPredicate() {
       return predicate;
     }
 
+    /**
+     * Change the predicate to the provided one
+     *
+     * @param predicate predicate to use
+     */
     public void setPredicate(final Predicate<Map.Entry<K, Pool<V>>> predicate) {
       this.predicate = Preconditions.checkNotNull(predicate);
     }
 
+    /**
+     * Chooses a value from a filtered Collection.
+     *
+     * @param filtered elements from the active pools based off the predicate
+     * @return a key to use, null if no key could be returned
+     */
     protected abstract K filtered(final Collection<Map.Entry<K, Pool<V>>> filtered);
 
+    /**
+     * A set of default predicates to choose from
+     */
     enum EntryPredicates implements Predicate<Map.Entry<Object, Pool<Object>>> {
+      /**
+       * Filters out all pools that are empty
+       */
       NON_EMPTY {
         @Override
         public boolean apply(final Map.Entry<Object, Pool<Object>> input) {
-          return ! input.getValue().isEmpty();
+          return !input.getValue().isEmpty();
         }
       };
 
-      @SuppressWarnings("unchecked") // these Object predicates work for any T
+      /**
+       * Type casts a predicate to any desired type
+       *
+       * @param <T> type to use for the predicate
+       * @return predicate of type T
+       */
+      @SuppressWarnings("unchecked")
+      // these Object predicates work for any T
       <T> Predicate<T> withNarrowedType() {
         return (Predicate<T>) this;
       }
     }
   }
 
-  public static <K,V> KeyChooser<K, V> roundRobinKeyChooser() {
+  /**
+   * Creates a new roundRobin based KeyChooser which also filters out empty pools
+   *
+   * @param <K> key type
+   * @param <V> value type
+   * @return round robin based KeyChooser
+   */
+  public static <K, V> KeyChooser<K, V> roundRobinKeyChooser() {
     return new AbstractKeyChooser<K, V>() {
       private final AtomicInteger index = new AtomicInteger(0);
 
       @Override
       protected K filtered(final Collection<Map.Entry<K, Pool<V>>> filtered) {
-        if(filtered.size() == 0) {
+        if (filtered.size() == 0) {
           return null;
         }
         int thisIndex = Math.abs(index.getAndIncrement());
