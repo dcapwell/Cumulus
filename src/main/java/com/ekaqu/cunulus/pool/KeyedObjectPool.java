@@ -27,16 +27,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Basic KeyedPool for generic objects.
  *
- * @param <K>
- * @param <V>
+ * This class is marked thread safe because most methods are.  {@link KeyedObjectPool#setPoolSizes(int, int)} is not
+ * thread safe and should be the only unsafe method.
+ * @param <K> key type
+ * @param <V> value type
  */
+//TODO find a way to replace keySupplier, factory, and chooser... don't like them
 @ThreadSafe
 @Beta
 public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
 
   private final Map<K, Pool<V>> poolMap = Maps.newConcurrentMap();
 
-  private final Supplier<K> hostSupplier;
+  private final Supplier<K> keySupplier;
   private final Factory<K, ObjectFactory<V>> factory;
   private final KeyChooser<K, V> chooser;
   private final ExecutorService executorService;
@@ -60,7 +63,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
                          final KeyChooser<K, V> chooser,
                          final int coreSize, final int maxSize, final int coreSizePerKey, final int maxSizePerKey) {
     this.chooser = Preconditions.checkNotNull(chooser);
-    this.hostSupplier = Preconditions.checkNotNull(keySupplier);
+    this.keySupplier = Preconditions.checkNotNull(keySupplier);
     this.factory = Preconditions.checkNotNull(factory);
     this.executorService = Preconditions.checkNotNull(executorService);
 
@@ -154,7 +157,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   @Override
   protected boolean createAndAdd() {
     boolean added = false;
-    K key = Preconditions.checkNotNull(hostSupplier.get());
+    K key = Preconditions.checkNotNull(keySupplier.get());
     if (!this.poolMap.containsKey(key)) {
       ObjectFactory<V> poolFactory = Preconditions.checkNotNull(factory.get(key));
 
