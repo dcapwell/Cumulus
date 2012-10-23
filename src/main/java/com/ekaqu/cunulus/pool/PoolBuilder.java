@@ -170,7 +170,6 @@ public class PoolBuilder<T> {
 
     private Supplier<K> keySupplier;
     private Factory<K, ObjectFactory<V>> factory;
-    private KeyedObjectPool.KeyChooser<K, V> chooser;
     private int coreSizePerKey;
     private int maxSizePerKey;
 
@@ -196,17 +195,6 @@ public class PoolBuilder<T> {
      */
     public KeyedPoolBuilder<K, V> factory(final Factory<K, ObjectFactory<V>> factory) {
       this.factory = Preconditions.checkNotNull(factory);
-      return this;
-    }
-
-    /**
-     * Chooses a key in the pool for {@link com.ekaqu.cunulus.pool.KeyedPool#borrow()}
-     *
-     * @param chooser picks keys in pool for consumption
-     * @return this builder
-     */
-    public KeyedPoolBuilder<K, V> keyChooser(final KeyedObjectPool.KeyChooser<K, V> chooser) {
-      this.chooser = Preconditions.checkNotNull(chooser);
       return this;
     }
 
@@ -244,11 +232,6 @@ public class PoolBuilder<T> {
       final Factory<K, ObjectFactory<V>> factory = Preconditions.checkNotNull(this.factory);
       final ExecutorService executorService = getExecutorService();
 
-      KeyedObjectPool.KeyChooser<K, V> chooser = this.chooser;
-      if (chooser == null) {
-        chooser = KeyedObjectPool.roundRobinKeyChooser();
-      }
-
       int corePoolSize = PoolBuilder.this.corePoolSize;
       int maxPoolSize = PoolBuilder.this.maxPoolSize;
 
@@ -263,13 +246,13 @@ public class PoolBuilder<T> {
       int maxPoolSizePerKey = maxSizePerKey;
 
       if (maxPoolSizePerKey == 0) {
-        maxPoolSizePerKey = DEFAULT_MAX_POOL_SIZE;
+        maxPoolSizePerKey = maxPoolSize;
         if (corePoolSizePerKey == 0) {
-          corePoolSizePerKey = DEFAULT_CORE_POOL_SIZE;
+          corePoolSizePerKey = corePoolSize;
         }
       }
 
-      KeyedPool<K, V> pool = new KeyedObjectPool<K, V>(hostSupplier, factory, executorService, chooser,
+      KeyedPool<K, V> pool = new KeyedObjectPool<K, V>(hostSupplier, factory, executorService,
           corePoolSize, maxPoolSize, corePoolSizePerKey, maxPoolSizePerKey);
       startPool(pool);
       return pool;

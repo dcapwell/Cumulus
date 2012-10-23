@@ -47,6 +47,21 @@ public class ForwardingPool<T> extends ForwardingService implements Pool<T> {
   }
 
   @Override
+  public int getCorePoolSize() {
+    return pool.getCorePoolSize();
+  }
+
+  @Override
+  public int getMaxPoolSize() {
+    return pool.getMaxPoolSize();
+  }
+
+  @Override
+  public int getActivePoolSize() {
+    return pool.getActivePoolSize();
+  }
+
+  @Override
   public int size() {
     return pool.size();
   }

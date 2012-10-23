@@ -44,4 +44,22 @@ public interface Pool<T> extends Service, Sized {
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj, Throwable throwable);
+
+  /**
+   * The number of elements that this pool wishes to be around
+   */
+  int getCorePoolSize();
+
+  /**
+   * The max number of elements this pool can hold
+   */
+  int getMaxPoolSize();
+
+  /**
+   * The number of objects that currently belong to the pool.
+   *
+   * This is different from size because size describes how many elements are currently in the pool.  Active, on the
+   * other hand, describes how many elements are alive but not necessarily in the pool at this moment.
+   */
+  int getActivePoolSize();
 }

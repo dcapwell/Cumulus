@@ -96,21 +96,24 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   protected Objects.ToStringHelper toStringBuilder() {
     return Objects.toStringHelper(getClass())
         .add("state", state())
-        .add("active", getActiveCount())
+        .add("active", getActivePoolSize())
         .add("size", size())
         .add("corePoolSize", getCorePoolSize())
         .add("maxPoolSize", getMaxPoolSize());
   }
 
+  @Override
   public int getCorePoolSize() {
     return corePoolSize;
   }
 
+  @Override
   public int getMaxPoolSize() {
     return maxPoolSize;
   }
 
-  public int getActiveCount() {
+  @Override
+  public int getActivePoolSize() {
     return active.get();
   }
 

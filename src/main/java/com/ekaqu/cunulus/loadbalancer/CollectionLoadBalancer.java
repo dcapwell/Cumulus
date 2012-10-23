@@ -76,11 +76,14 @@ public class CollectionLoadBalancer<E> extends ForwardingCollection<E> implement
       // fitler items into a list
       List<E> filtered = Lists.newArrayList();
       for (final E item : items) {
-        if (filterPredicate.apply(item)) {
+        boolean add = filterPredicate.apply(item);
+        if (add) {
           filtered.add(item);
         }
       }
-      if (filtered.isEmpty()) return null;
+      if (filtered.isEmpty()) {
+        return null;
+      }
       return this.get(filtered);
     }
   }

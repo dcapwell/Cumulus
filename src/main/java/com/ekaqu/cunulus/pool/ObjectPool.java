@@ -98,9 +98,9 @@ public class ObjectPool<T> extends AbstractPool<T> {
     }
 
     // if pool size has changed, then attempt to shrink
-    if (getActiveCount() > getMaxPoolSize()) {
+    if (getActivePoolSize() > getMaxPoolSize()) {
       shrink();
-    } else if (getActiveCount() < getCorePoolSize()) {
+    } else if (getActivePoolSize() < getCorePoolSize()) {
       // active count is less than core, so expand
       expand();
     }
