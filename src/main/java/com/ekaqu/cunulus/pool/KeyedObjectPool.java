@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Basic KeyedPool for generic objects.
@@ -55,6 +58,12 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   private final Map<K, Pool<V>> poolMap = Maps.newConcurrentMap();
   private final CollectionLoadBalancer<Map.Entry<K, Pool<V>>> loadBalancer =
       new CollectionLoadBalancer(poolMap.entrySet(), new RoundRobinLoadBalancer(), poolSizePredicate);
+
+  /**
+   * When the pool is empty, used to wait for expansion or returned data.
+   */
+  final Lock lock = new ReentrantLock();
+  final Condition notEmpty = lock.newCondition();
 
   private final Runnable expandPool = new Runnable() {
     @Override
@@ -100,29 +109,23 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
       // all pools are at max size!, need to expand this pool
       // try to expand pool size if can
       if (poolMap.size() < super.getMaxPoolSize()) {
-
-        //TODO clean up this hacky code
-        Stopwatch stopwatch = new Stopwatch().start();
         Future<?> future = executorService.submit(expandPool);
-        try {
-          Futures.get(future, timeout, unit, Exception.class);
-        } catch (Exception e) {
-          throw new AssertionError("shouldn't have thrown exception while expanding");
-        }
-        // try one more time
-        entry = loadBalancer.get();
-        if (entry == null) {
-          return Optional.absent();
-        } else {
-          stopwatch.stop();
-          long remainingTime = unit.toNanos(timeout) - stopwatch.elapsedTime(TimeUnit.NANOSECONDS);
-          return borrow(entry.getKey(), remainingTime, TimeUnit.NANOSECONDS);
-        }
-      } else {
+      }
+      lock.lock();
+      try {
+        notEmpty.await(timeout, unit);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } finally {
+        lock.unlock();
+      }
+      if(isEmpty()) {
         return Optional.absent();
+      } else {
+        return borrow();
       }
     }
-    return borrow(entry.getKey(), timeout, unit);
+    return borrow(entry.getValue(), entry.getKey(), timeout, unit);
   }
 
   @Override
@@ -138,6 +141,10 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     checkNotClosed();
 
     Pool<V> pool = poolMap.get(key);
+    return borrow(pool, key, timeout, unit);
+  }
+
+  private Optional<Map.Entry<K,V>> borrow(final Pool<V> pool, final K key, final long timeout, final TimeUnit unit) {
     Optional<Map.Entry<K, V>> ret = Optional.absent();
     if (pool != null) {
       Optional<V> value = pool.borrow(timeout, unit);
@@ -156,6 +163,12 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     Pool<V> pool = poolMap.get(hostPort);
     if (pool != null) {
       pool.returnToPool(object, throwable);
+      lock.lock();
+      try {
+        notEmpty.signal();
+      } finally {
+        lock.unlock();
+      }
     } else {
       //TODO should pool be enhanced to support this?
       throw new IllegalArgumentException("Host " + hostPort + " doesn't have a pool");
@@ -187,6 +200,13 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
         oldPool.stopAndWait();
       } else {
         added = true;
+
+        lock.lock();
+        try {
+          notEmpty.signal();
+        } finally {
+          lock.unlock();
+        }
       }
     }
     return added;
@@ -261,10 +281,9 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
    */
   @Override
   public boolean isEmpty() {
-    boolean empty = false;
     for (final Pool<V> pool : poolMap.values()) {
-      empty |= pool.isEmpty();
+      if(! pool.isEmpty()) return false;
     }
-    return empty;
+    return true;
   }
 }

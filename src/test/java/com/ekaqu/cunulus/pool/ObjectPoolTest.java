@@ -1,5 +1,6 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ public class ObjectPoolTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectPoolTest.class.getName());
 
   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+  private final StringObjectFactory stringFactory = new StringObjectFactory();
 
   public void startPool() {
     Pool<String> pool = new ObjectPool<String>(new StringFactory(), executorService, 5, 10);
@@ -182,6 +184,27 @@ public class ObjectPoolTest {
     pool.returnToPool(num, null);
     Assert.assertEquals(pool.size(), 2);
     Assert.assertTrue(pool.isRunning(), "Currently running");
+  }
+
+  /**
+   * Check if the pool is empty at the right stages.
+   *
+   * empty happens when the pool has no elements in it.  this doesn't mean that the pool can't expand though.
+   */
+  public void isEmpty() {
+    Pool<String> pool = new PoolBuilder<String>()
+        .executorService(executorService)
+        .corePoolSize(1)
+        .maxPoolSize(2)
+        .objectFactory(stringFactory)
+        .build();
+
+    Assert.assertFalse(pool.isEmpty());
+    for(int i = 0, maxSize = pool.getCorePoolSize(); i < maxSize; i++) {
+      Assert.assertFalse(pool.isEmpty());
+      pool.borrow(5, TimeUnit.SECONDS).get();
+    }
+    Assert.assertTrue(pool.isEmpty());
   }
 
   private static class StringFactory extends AbstractObjectFactory<String> {
