@@ -27,8 +27,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
 
     try {
-      while (active.get() < corePoolSize && expand()) {
-      }
+      while (getActivePoolSize() < getCorePoolSize() && expand()) { }
       notifyStarted();
     } catch (Exception e) {
       notifyFailed(e);
@@ -143,7 +142,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    */
   protected boolean expand() {
     boolean added = false;
-    if (active.get() < getMaxPoolSize()) {
+    if (getActivePoolSize() < getMaxPoolSize()) {
       // there is room to expand, so lets create and add an object
       added = createAndAdd();
       if (added) active.incrementAndGet();
@@ -158,11 +157,13 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    */
   protected boolean shrink() {
     boolean shrunk = false;
-    if (active.get() > getCorePoolSize()) {
+    final int activePoolSize = getActivePoolSize();
+    final int corePoolSize = getCorePoolSize();
+    if (activePoolSize > getCorePoolSize()) {
       // only shrink if active count is larger than core size
-      int count = shrink(active.get() - getCorePoolSize());
+      int count = shrink(activePoolSize - getCorePoolSize());
       if (count > 0) {
-        active.addAndGet(count * -1);
+        active.addAndGet(0 - count);
         shrunk = true;
       }
     }
@@ -188,7 +189,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * @return if full or not
    */
   protected boolean isFull() {
-    return size() >= active.get();
+    return size() >= getActivePoolSize();
   }
 
   /**

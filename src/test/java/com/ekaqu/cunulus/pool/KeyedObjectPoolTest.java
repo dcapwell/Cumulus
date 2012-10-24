@@ -1,19 +1,31 @@
 package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
+import com.ekaqu.cunulus.retry.BackOffPolicy;
+import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
+import com.ekaqu.cunulus.util.Block;
 import com.google.common.collect.Lists;
+import com.google.common.math.IntMath;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Matchers.booleanThat;
+import static org.mockito.Matchers.intThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
 @Test(groups = "Unit")
@@ -27,7 +39,8 @@ public class KeyedObjectPoolTest {
       .withKeyType(String.class)
         .factory(stringFactory)
         .keySupplier(stringFactory);
-  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
+  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
   public void createAndGet() {
     KeyedObjectPool<String, String> pool = (KeyedObjectPool<String, String>) poolBuilder.build();
@@ -110,30 +123,88 @@ public class KeyedObjectPoolTest {
   }
 
   public void concurrentExpandingPool() {
-    final KeyedPool<String, String> pool = new PoolBuilder<String>().withKeyType(String.class).factory(stringFactory).keySupplier(stringFactory).build();
-    pool.startAndWait();
+    final KeyedPool<String, String> pool = new PoolBuilder<String>()
+        .withKeyType(String.class)
+        .factory(stringFactory)
+        .keySupplier(stringFactory)
+        .build();
 
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), 5 * 5, "CorePoolSize not set at startup");
 
+    // causes the interactions to be more random in hopes that threads hit at different times
+    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
     for(int i = 0; i < 1000; i++) {
       LOGGER.info("Iteration {}", i);
       final Map.Entry<String, String> obj = pool.borrow(50, TimeUnit.SECONDS).get();
 
-      executorService.schedule(new Runnable() {
+      final int finalI = i;
+      executorService.submit(new Runnable() {
         @Override
         public void run() {
+          backOffPolicy.backoff(finalI);
           pool.returnToPool(obj);
         }
-      }, 50, TimeUnit.MILLISECONDS);
+      });
     }
 
+//    try {
+//      TimeUnit.SECONDS.sleep(2);
+//    } catch (InterruptedException e) {
+//      Thread.currentThread().interrupt();
+//    }
+    executorService.shutdown();
     try {
-      TimeUnit.SECONDS.sleep(2);
+      executorService.awaitTermination(5, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
+  }
+
+  public void concurrentExpandingPoolWithExecution() {
+    final int maxPoolSize = 2;
+    final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()
+        .maxPoolSize(maxPoolSize)
+        .withKeyType(String.class)
+          .factory(stringFactory)
+          .keySupplier(stringFactory)
+          .buildExecutingPool();
+
+    LOGGER.info("Pool {}", pool);
+    Assert.assertEquals(pool.size(), pool.getCorePoolSize(), "CorePoolSize not set at startup");
+
+    // causes the interactions to be more random in hopes that threads hit at different times
+    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy((int) TimeUnit.SECONDS.toMillis(1));
+    final AtomicInteger callCounter = new AtomicInteger();
+    for(int i = 0; i < 100; i++) {
+      final int finalI = i;
+      executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          final boolean executed = pool.execute(new Block<Map.Entry<String, String>>() {
+            @Override
+            public void apply(final Map.Entry<String, String> stringStringEntry) {
+              LOGGER.info("Iteration {}", finalI);
+              backOffPolicy.backoff(finalI);
+              callCounter.incrementAndGet();
+            }
+          }, 50, TimeUnit.SECONDS);
+        }
+      });
+    }
+
+    executorService.shutdown();
+    try {
+      executorService.awaitTermination(5, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    LOGGER.info("Pool {}", pool);
+    Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
+    Assert.assertEquals(callCounter.get(), 100, "A block didn't execute");
   }
 }

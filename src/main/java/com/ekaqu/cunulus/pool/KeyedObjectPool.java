@@ -108,8 +108,10 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     if (entry == null) {
       // all pools are at max size!, need to expand this pool
       // try to expand pool size if can
-      if (poolMap.size() < super.getMaxPoolSize()) {
+      int poolSize = poolMap.size(), maxPoolSize = super.getMaxPoolSize();
+      if (poolSize < maxPoolSize) {
         Future<?> future = executorService.submit(expandPool);
+//          expand();
       }
       lock.lock();
       try {
@@ -186,26 +188,34 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   @Override
-  protected boolean createAndAdd() {
+  protected boolean  createAndAdd() {
     boolean added = false;
-    K key = Preconditions.checkNotNull(keySupplier.get());
-    if (!this.poolMap.containsKey(key)) {
-      ObjectFactory<V> poolFactory = Preconditions.checkNotNull(factory.get(key));
+    synchronized (poolMap) {
+      int poolSize = poolMap.size(), maxPoolSize = super.getMaxPoolSize();
+      if(poolSize < maxPoolSize) {
+        K key = Preconditions.checkNotNull(keySupplier.get());
+        if (!this.poolMap.containsKey(key)) {
+          ObjectFactory<V> poolFactory = Preconditions.checkNotNull(factory.get(key));
 
-      Pool<V> pool = new ObjectPool<V>(poolFactory, executorService, coreSizePerKey, maxSizePerKey);
-      pool.startAndWait();
+          Pool<V> pool = new PoolBuilder<V>()
+              .objectFactory(poolFactory)
+              .executorService(executorService)
+              .corePoolSize(coreSizePerKey)
+              .maxPoolSize(maxSizePerKey).build();
 
-      Pool<V> oldPool = this.poolMap.put(key, pool);
-      if (oldPool != null) {
-        oldPool.stopAndWait();
-      } else {
-        added = true;
+          Pool<V> oldPool = this.poolMap.put(key, pool);
+          if (oldPool != null) {
+            oldPool.stopAndWait();
+          } else {
+            added = true;
 
-        lock.lock();
-        try {
-          notEmpty.signal();
-        } finally {
-          lock.unlock();
+            lock.lock();
+            try {
+              notEmpty.signal();
+            } finally {
+              lock.unlock();
+            }
+          }
         }
       }
     }
