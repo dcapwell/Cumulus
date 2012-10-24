@@ -222,7 +222,7 @@ public class Amazon {
         final String value = metaData.remoteFetchValueWithRetries();
         System.out.printf("%s => %s\r\n", metaData, value);
       } else {
-        StringBuilder sb = new StringBuilder("Please supply a meta data name.  The following are valid:\r\n");
+        StringBuilder sb = new StringBuilder("Please supply a meta data name.  The following are valid:%n");
         for(MetaData e : MetaData.values()) {
           sb.append(e.toString()).append("\r\n");
         }
