@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Test(groups = "Unit")
 public class IntegerCounterTest {
@@ -188,5 +189,40 @@ public class IntegerCounterTest {
     executorService.awaitTermination(20, TimeUnit.SECONDS);
 
     Assert.assertEquals(counter.get(), 0);
+  }
+
+  /**
+   * Tests to validate that AtomicInt and IntegerCounter return the same results in a single threaded environment
+   */
+  public void matchesAtomic() {
+    final IntegerCounter counter = new IntegerCounter();
+    final AtomicInteger atomic = new AtomicInteger();
+
+    Assert.assertEquals(counter.get(), atomic.get());
+
+    Assert.assertEquals(counter.incrementAndGet(), atomic.incrementAndGet());
+    Assert.assertEquals(counter.getAndIncrement(), atomic.getAndIncrement());
+
+    Assert.assertEquals(counter.decrementAndGet(), atomic.decrementAndGet());
+    Assert.assertEquals(counter.getAndDecrement(), atomic.getAndDecrement());
+
+    Assert.assertEquals(counter.addAndGet(5), atomic.addAndGet(5));
+    Assert.assertEquals(counter.getAndAdd(-2), atomic.getAndAdd(-2));
+
+    Assert.assertEquals(counter.get(), atomic.get());
+    Assert.assertEquals(counter.compareAndSet(counter.get(), 72), atomic.compareAndSet(atomic.get(), 72));
+    Assert.assertEquals(counter.weakCompareAndSet(counter.get(), 1209), atomic.weakCompareAndSet(atomic.get(), 1209));
+
+    Assert.assertEquals(counter.getAndSet(32), atomic.getAndSet(32));
+
+    Assert.assertEquals(counter.get(), atomic.get());
+
+    counter.set(1);
+    atomic.set(1);
+    Assert.assertEquals(counter.get(), atomic.get());
+
+    counter.lazySet(13);
+    atomic.lazySet(13);
+    Assert.assertEquals(counter.get(), atomic.get());
   }
 }
