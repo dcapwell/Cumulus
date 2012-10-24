@@ -27,7 +27,8 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
 
     try {
-      while (getActivePoolSize() < getCorePoolSize() && expand()) { }
+      while (getActivePoolSize() < getCorePoolSize() && expand()) {
+      }
       notifyStarted();
     } catch (Exception e) {
       notifyFailed(e);

@@ -7,7 +7,6 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -15,6 +14,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.AbstractMap;
 import java.util.Iterator;
@@ -39,18 +39,18 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <V> value type
  */
 //TODO find a way to replace keySupplier, and factory... don't like them
-//TODO find out why keyCount != active...
 //TODO need more concurrent testing and review
 @ThreadSafe
 @Beta
 public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
 
+  //TODO should this be configurable?
   private final Predicate<Map.Entry<K, Pool<V>>> poolSizePredicate = new Predicate<Map.Entry<K, Pool<V>>>() {
     @Override
     public boolean apply(@Nullable final Map.Entry<K, Pool<V>> input) {
-      if(input == null) return false;
+      if (input == null) return false;
       final Pool<V> pool = input.getValue();
-      return ! pool.isEmpty() || pool.getActivePoolSize() < pool.getMaxPoolSize();
+      return !pool.isEmpty() || pool.getActivePoolSize() < pool.getMaxPoolSize();
     }
   };
 
@@ -62,9 +62,17 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   /**
    * When the pool is empty, used to wait for expansion or returned data.
    */
-  final Lock lock = new ReentrantLock();
-  final Condition notEmpty = lock.newCondition();
+  private final Lock lock = new ReentrantLock();
+  private final Condition notEmpty = lock.newCondition();
 
+  /**
+   * Used to synchronize pool expansion
+   */
+  private final Object expandingLock = new Object();
+
+  /**
+   * Used to expand the pool in the background
+   */
   private final Runnable expandPool = new Runnable() {
     @Override
     public void run() {
@@ -72,8 +80,12 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     }
   };
 
+  @GuardedBy("expandingLock")
   private final Supplier<K> keySupplier;
+
+  @GuardedBy("expandingLock")
   private final Factory<K, ObjectFactory<V>> factory;
+
   private final ExecutorService executorService;
   private final int coreSizePerKey, maxSizePerKey;
 
@@ -111,17 +123,9 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
       int poolSize = poolMap.size(), maxPoolSize = super.getMaxPoolSize();
       if (poolSize < maxPoolSize) {
         Future<?> future = executorService.submit(expandPool);
-//          expand();
       }
-      lock.lock();
-      try {
-        notEmpty.await(timeout, unit);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      } finally {
-        lock.unlock();
-      }
-      if(isEmpty()) {
+      awaitAdded(timeout, unit);
+      if (isEmpty()) {
         return Optional.absent();
       } else {
         return borrow();
@@ -146,7 +150,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     return borrow(pool, key, timeout, unit);
   }
 
-  private Optional<Map.Entry<K,V>> borrow(final Pool<V> pool, final K key, final long timeout, final TimeUnit unit) {
+  private Optional<Map.Entry<K, V>> borrow(final Pool<V> pool, final K key, final long timeout, final TimeUnit unit) {
     Optional<Map.Entry<K, V>> ret = Optional.absent();
     if (pool != null) {
       Optional<V> value = pool.borrow(timeout, unit);
@@ -165,12 +169,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     Pool<V> pool = poolMap.get(hostPort);
     if (pool != null) {
       pool.returnToPool(object, throwable);
-      lock.lock();
-      try {
-        notEmpty.signal();
-      } finally {
-        lock.unlock();
-      }
+      notifyAdded();
     } else {
       //TODO should pool be enhanced to support this?
       throw new IllegalArgumentException("Host " + hostPort + " doesn't have a pool");
@@ -187,39 +186,82 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
         .toString();
   }
 
+  /**
+   * If the pool has room to expand, this method will attempt to expand.  There are three things that make this
+   * a slow operation:
+   *
+   * <ul>
+   *   <li>{@link Supplier} used for generating Keys.  This has no expected time and may be a network call</li>
+   *   <li>{@link Factory} that generates the {@link ObjectFactory}.  This has no expected time and may be a network
+   *   call</li>
+   *   <li>{@link com.ekaqu.cunulus.pool.PoolBuilder#build()} that creates a new pool. This has no expected time and
+   *   may be a network call N times, where N is the coreSizePerKey</li>
+   * </ul>
+   * @return if pool expanded
+   */
   @Override
-  protected boolean  createAndAdd() {
+  protected boolean createAndAdd() {
     boolean added = false;
-    synchronized (poolMap) {
-      int poolSize = poolMap.size(), maxPoolSize = super.getMaxPoolSize();
-      if(poolSize < maxPoolSize) {
+    Pool<V> oldPool = null;
+    synchronized (expandingLock) {
+      int poolSize = poolMap.size(),
+          maxPoolSize = super.getMaxPoolSize();
+      if (poolSize < maxPoolSize) {
+        // key supplier may be slow
         K key = Preconditions.checkNotNull(keySupplier.get());
         if (!this.poolMap.containsKey(key)) {
+          // factory may be slow
           ObjectFactory<V> poolFactory = Preconditions.checkNotNull(factory.get(key));
 
+          // can be really slow since it requires coreSizePerKey number of Supplier calls
           Pool<V> pool = new PoolBuilder<V>()
               .objectFactory(poolFactory)
               .executorService(executorService)
               .corePoolSize(coreSizePerKey)
               .maxPoolSize(maxSizePerKey).build();
 
-          Pool<V> oldPool = this.poolMap.put(key, pool);
-          if (oldPool != null) {
-            oldPool.stopAndWait();
-          } else {
-            added = true;
 
-            lock.lock();
-            try {
-              notEmpty.signal();
-            } finally {
-              lock.unlock();
-            }
-          }
+          oldPool = this.poolMap.put(key, pool);
+          added = true;
+          notifyAdded();
         }
       }
     }
+    if (oldPool != null) {
+      oldPool.stop(); // let the kill run in the background, don't care about state
+    }
     return added;
+  }
+
+  /**
+   * Causes a wait until a new element has been added.  This should be triggered when an item is returned to the
+   * pool or when the pool expands
+   *
+   * @param timeout how long to wait
+   * @param unit    unit that the timeout is using
+   */
+  private void awaitAdded(final long timeout, final TimeUnit unit) {
+    lock.lock();
+    try {
+      notEmpty.await(timeout, unit);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  /**
+   * Notifies that an element has been returned to the pool or the pool expanded.  This should waken callers
+   * of {@link KeyedObjectPool#awaitAdded(long, java.util.concurrent.TimeUnit)}
+   */
+  private void notifyAdded() {
+    lock.lock();
+    try {
+      notEmpty.signal();
+    } finally {
+      lock.unlock();
+    }
   }
 
   @Override
@@ -292,7 +334,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   @Override
   public boolean isEmpty() {
     for (final Pool<V> pool : poolMap.values()) {
-      if(! pool.isEmpty()) return false;
+      if (!pool.isEmpty()) return false;
     }
     return true;
   }
