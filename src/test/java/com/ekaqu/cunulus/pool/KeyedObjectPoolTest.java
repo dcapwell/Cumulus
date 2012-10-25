@@ -167,6 +167,8 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
   }
 
+  @Test(groups = "Experiment", description = "A pool without retries isn't guarantied to give a object back.  " +
+      "This test is used for testing timing and isn't a unit test")
   public void concurrentExpandingPoolWithExecution() throws InterruptedException {
     final int maxPoolSize = 2;
     final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()

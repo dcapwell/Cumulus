@@ -195,6 +195,8 @@ public class ExecutingPoolTest {
     Assert.fail("Unreachable");
   }
 
+  @Test(groups = "Experiment", description = "A pool without retries doesn't have a guaranty that a object is returned.  " +
+      "This test is mostly to test timing and not a unit test")
   public void concurrentBlockExecute() throws InterruptedException {
     final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
 
@@ -263,7 +265,7 @@ public class ExecutingPoolTest {
     }
 
     executorService.shutdown();
-    executorService.awaitTermination(50, TimeUnit.SECONDS);
+    executorService.awaitTermination(50, TimeUnit.MINUTES);
 
     Assert.assertEquals(counter.get(), iterations);
   }

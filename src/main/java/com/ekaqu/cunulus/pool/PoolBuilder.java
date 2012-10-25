@@ -15,20 +15,44 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Helps build Pool objects with a streamlined interface and sensible defaults.
  * <p/>
- * Example of a basic object pool
+ * Example building a {@link ExecutingPool} backed by a {@link Pool} using the builder
  * {@code
- * Pool<T> pool = new PoolBuilder<T>()
- * .objectFactory(factory)
- * .build();
+ * ExecutingPool<T> pool = new PoolBuilder<T>()
+ *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
+ *                    .executorService(executorService) // optional executor service for background pool operations
+ *                    .corePoolSize(2) // optional size the pool should try to stay around
+ *                    .maxPoolSize(4) // optional max size the pool can reach
+ *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * <p/>
- * This class can also be used to build KeyedPools
+ * A simpler example
  * {@code
- * KeyedPool<K, V> pool = new PoolBuilder<V>()
- * .withKeyType(K.class)
- * .keySupplier(factory)
- * .factory(factoryFactory)
- * .build();
+ * ExecutingPool<T> pool = new PoolBuilder<T>()
+ *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
+ *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * }
+ * <p/>
+ * How to build a {@link ExecutingPool} backed by {@link KeyedPool}
+ * {@code
+ * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
+ *                                          .corePoolSize(2) // optional size the pool should try to stay around
+ *                                          .maxPoolSize(4) // optional max size the pool can reach
+ *                                          .executorService(executorService) // optional executor service for background pool operations
+ *                                          .withKeyType(String.class)
+ *                                              .coreSizePerKey(2) // optional size the underlining pools should stay around
+ *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
+ *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * }
+ * <p/>
+ * A simpler example building a {@link ExecutingPool} backed by {@link KeyedPool}
+ * {@code
+ * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
+ *                                          .withKeyType(String.class)
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
+ *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  *
  * @param <T> type of the pool to build

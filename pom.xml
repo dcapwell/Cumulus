@@ -82,6 +82,8 @@
           <parallel>classes</parallel>
           <threadCount>2</threadCount>
           <excludedGroups>Experiment</excludedGroups>
+          <failIfNoTests>true</failIfNoTests>
+          <enableAssertions>true</enableAssertions>
         </configuration>
       </plugin>
       <plugin>

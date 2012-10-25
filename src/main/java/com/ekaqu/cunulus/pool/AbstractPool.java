@@ -160,7 +160,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
     final int shrinkBy = getActivePoolSize() - getCorePoolSize();
     // only shrink if active count is larger than core size
     int removed = 0;
-    if(shrinkBy > 0) {
+    if (shrinkBy > 0) {
       removed = shrink(shrinkBy);
       active.addAndGet(0 - removed); // removed should always be 0 or positive
     }

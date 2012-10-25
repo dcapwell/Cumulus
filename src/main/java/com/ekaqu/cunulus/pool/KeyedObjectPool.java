@@ -190,14 +190,15 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   /**
    * If the pool has room to expand, this method will attempt to expand.  There are three things that make this
    * a slow operation:
-   *
+   * <p/>
    * <ul>
-   *   <li>{@link Supplier} used for generating Keys.  This has no expected time and may be a network call</li>
-   *   <li>{@link Factory} that generates the {@link ObjectFactory}.  This has no expected time and may be a network
-   *   call</li>
-   *   <li>{@link com.ekaqu.cunulus.pool.PoolBuilder#build()} that creates a new pool. This has no expected time and
-   *   may be a network call N times, where N is the coreSizePerKey</li>
+   * <li>{@link Supplier} used for generating Keys.  This has no expected time and may be a network call</li>
+   * <li>{@link Factory} that generates the {@link ObjectFactory}.  This has no expected time and may be a network
+   * call</li>
+   * <li>{@link com.ekaqu.cunulus.pool.PoolBuilder#build()} that creates a new pool. This has no expected time and
+   * may be a network call N times, where N is the coreSizePerKey</li>
    * </ul>
+   *
    * @return if pool expanded
    */
   @Override

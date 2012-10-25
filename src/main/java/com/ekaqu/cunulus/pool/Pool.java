@@ -8,7 +8,30 @@ import com.google.common.util.concurrent.Service;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Represents a pool of objects
+ * Represents a pool of objects.  A pool is normally used in concurrent environments so most implementations
+ * should be thread safe; this interface does not force thread safety though.
+ * <p/>
+ * It is recommended that while working with pools that the {@link ExecutingPool} is used with a
+ * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error causes so
+ * you can focus just on your logic.  Also it is best to use the {@link PoolBuilder} for creating pools.
+ * The builder always returns a thread safe pool and with a few defaults to simplify pool creation.
+ * <p/>
+ * Example building a Pool using the builder
+ * {@code
+ * ExecutingPool<T> pool = new PoolBuilder<T>()
+ *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
+ *                    .executorService(executorService) // optional executor service for background pool operations
+ *                    .corePoolSize(2) // optional size the pool should try to stay around
+ *                    .maxPoolSize(4) // optional max size the pool can reach
+ *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * }
+ * <p/>
+ * A simpler example
+ * {@code
+ * ExecutingPool<T> pool = new PoolBuilder<T>()
+ *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
+ *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * }
  *
  * @param <T> type of the object in the pool
  */
