@@ -1,16 +1,25 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
+import com.ekaqu.cunulus.retry.BackOffPolicy;
+import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.retry.Retryer;
 import com.ekaqu.cunulus.retry.Retryers;
 import com.ekaqu.cunulus.util.Block;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
@@ -23,6 +32,10 @@ public class ExecutingPoolTest {
 
   private Pool<String> pool;
   private final Retryer retryer = Retryers.newRetryer(3);
+
+  private final StringObjectFactory stringFactory = new StringObjectFactory();
+  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
+  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
   @BeforeClass(alwaysRun = true)
   public void before() {
@@ -179,5 +192,40 @@ public class ExecutingPoolTest {
 
     // then
     Assert.fail("Unreachable");
+  }
+
+  public void concurrentBlockExecute() throws InterruptedException {
+    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+
+    final ExecutingPool<String> pool = new PoolBuilder<String>()
+        .objectFactory(stringFactory).executorService(executorService)
+        .corePoolSize(2).maxPoolSize(4).buildExecutingPool();
+
+    final AtomicInteger counter = new AtomicInteger();
+    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
+    final int iterations = 1000;
+    for(int i = 0; i < iterations; i++) {
+      final int finalI = i;
+      executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          pool.execute(new Block<String>() {
+            @Override
+            public void apply(final String s) {
+              LOGGER.info("Iteraction {}, data {}", finalI, s);
+//              backOffPolicy.backoff(finalI);
+              counter.incrementAndGet();
+            }
+          }, 5, TimeUnit.SECONDS);
+
+        }
+      });
+    }
+
+    executorService.shutdown();
+    executorService.awaitTermination(50, TimeUnit.SECONDS);
+//    TimeUnit.SECONDS.sleep(15);
+
+    Assert.assertEquals(counter.get(), iterations);
   }
 }

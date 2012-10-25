@@ -2,6 +2,8 @@ package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
 import com.ekaqu.cunulus.retry.BackOffPolicy;
+import com.ekaqu.cunulus.retry.FixedBackOffPolicy;
+import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.util.Block;
 import com.google.common.collect.Lists;
@@ -164,7 +166,7 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
   }
 
-  public void concurrentExpandingPoolWithExecution() {
+  public void concurrentExpandingPoolWithExecution() throws InterruptedException {
     final int maxPoolSize = 2;
     final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()
         .maxPoolSize(maxPoolSize)
@@ -178,18 +180,21 @@ public class KeyedObjectPoolTest {
 
     // causes the interactions to be more random in hopes that threads hit at different times
     final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
-    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy((int) TimeUnit.SECONDS.toMillis(1));
+    final BackOffPolicy backOffPolicy = new FixedBackOffPolicy(500, TimeUnit.MILLISECONDS);
     final AtomicInteger callCounter = new AtomicInteger();
-    for(int i = 0; i < 100; i++) {
+
+    final int iterations = 100;
+    for(int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
         public void run() {
-          final boolean executed = pool.execute(new Block<Map.Entry<String, String>>() {
+          pool.execute(new Block<Map.Entry<String, String>>() {
             @Override
             public void apply(final Map.Entry<String, String> stringStringEntry) {
               LOGGER.info("Iteration {}", finalI);
-              backOffPolicy.backoff(finalI);
+
+//              backOffPolicy.backoff(finalI);
               callCounter.incrementAndGet();
             }
           }, 50, TimeUnit.SECONDS);
@@ -197,14 +202,16 @@ public class KeyedObjectPoolTest {
       });
     }
 
-    executorService.shutdown();
-    try {
-      executorService.awaitTermination(5, TimeUnit.MINUTES);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+//    executorService.shutdown();
+//    try {
+//      executorService.awaitTermination(50, TimeUnit.MINUTES);
+//    } catch (InterruptedException e) {
+//      Thread.currentThread().interrupt();
+//    }
+    TimeUnit.SECONDS.sleep(10);
+
     LOGGER.info("Pool {}", pool);
+    Assert.assertEquals(callCounter.get(), iterations, "A block didn't execute");
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
-    Assert.assertEquals(callCounter.get(), 100, "A block didn't execute");
   }
 }

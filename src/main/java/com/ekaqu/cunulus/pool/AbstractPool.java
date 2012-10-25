@@ -157,21 +157,14 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * @return if pool shrunk.  If shrinking still left the pool larger than core, true should be returned
    */
   protected boolean shrink() {
-    boolean shrunk = false;
-    //NOTE: the results of getActivePoolSize() and getCorePoolSize() might change after this guard is called
-    //NOTE: this should be fine since there is a check against shrinkBy that is always positive
-    if (getActivePoolSize() > getCorePoolSize()) {
-      // only shrink if active count is larger than core size
-      final int shrinkBy = getActivePoolSize() - getCorePoolSize();
-      if(shrinkBy > 0) {
-        int count = shrink(shrinkBy);
-        if (count > 0) {
-          active.addAndGet(0 - count);
-          shrunk = true;
-        }
-      }
+    final int shrinkBy = getActivePoolSize() - getCorePoolSize();
+    // only shrink if active count is larger than core size
+    int removed = 0;
+    if(shrinkBy > 0) {
+      removed = shrink(shrinkBy);
+      active.addAndGet(0 - removed); // removed should always be 0 or positive
     }
-    return shrunk;
+    return removed > 0;
   }
 
   /**
