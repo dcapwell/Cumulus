@@ -2,6 +2,7 @@ package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
 import com.ekaqu.cunulus.retry.BackOffPolicy;
+import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.retry.Retryer;
 import com.ekaqu.cunulus.retry.Retryers;
@@ -225,6 +226,44 @@ public class ExecutingPoolTest {
     executorService.shutdown();
     executorService.awaitTermination(50, TimeUnit.SECONDS);
 //    TimeUnit.SECONDS.sleep(15);
+
+    Assert.assertEquals(counter.get(), iterations);
+  }
+
+  public void concurrentBlockRetryExecute() throws InterruptedException {
+    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+
+    final ExecutingPool<String> pool = new PoolBuilder<String>()
+        .objectFactory(stringFactory).executorService(executorService)
+        .corePoolSize(2).maxPoolSize(4).buildExecutingPool(
+            // 10 should be enough so everyone gets an object
+            // this will cause the last few executions to be slow since they have longer sleeps
+            Retryers.newExponentialBackoffRetryer(10));
+
+    final AtomicInteger counter = new AtomicInteger();
+    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
+//    final BackOffPolicy backOffPolicy = new NoBackoffPolicy();
+    final int iterations = 1000;
+    for(int i = 0; i < iterations; i++) {
+      final int finalI = i;
+      executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          pool.execute(new Block<String>() {
+            @Override
+            public void apply(final String s) {
+              LOGGER.info("Iteraction {}, data {}", finalI, s);
+              backOffPolicy.backoff(finalI);
+              counter.incrementAndGet();
+            }
+          }, 5, TimeUnit.SECONDS);
+
+        }
+      });
+    }
+
+    executorService.shutdown();
+    executorService.awaitTermination(50, TimeUnit.SECONDS);
 
     Assert.assertEquals(counter.get(), iterations);
   }

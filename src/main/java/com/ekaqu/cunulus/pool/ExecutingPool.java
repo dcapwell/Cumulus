@@ -127,10 +127,14 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
                 }
                 return Boolean.TRUE;
               } else {
-                return Boolean.FALSE;
+//                return Boolean.FALSE;
+                // unable to get a pooled object, force retry.
+                throw new ForcePoolRetryException();
               }
             }
           });
+        } catch (ForcePoolRetryException e) {
+          return Boolean.FALSE;
         } catch (Exception e) {
           // the callable doesn't throw an exception so this should be rare
           throw Throwables.propagate(e);
@@ -155,13 +159,24 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
                 }
                 return Boolean.TRUE;
               } else {
-                return Boolean.FALSE;
+//                return Boolean.FALSE;
+                // unable to get a pooled object, force retry.
+                throw new ForcePoolRetryException();
               }
             }
           });
+        } catch (ForcePoolRetryException e) {
+          return Boolean.FALSE;
         } catch (Exception e) {
           // the callable doesn't throw an exception so this should be rare
           throw Throwables.propagate(e);
+        }
+      }
+
+      final class ForcePoolRetryException extends PoolRuntimeException {
+
+        public ForcePoolRetryException() {
+          super("Force pool retry");
         }
       }
     };

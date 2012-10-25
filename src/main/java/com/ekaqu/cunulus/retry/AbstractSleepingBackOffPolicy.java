@@ -2,8 +2,6 @@ package com.ekaqu.cunulus.retry;
 
 import com.google.common.annotations.Beta;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Abstract class for all sleep based BackOffPolicys.
  */
@@ -13,7 +11,8 @@ public abstract class AbstractSleepingBackOffPolicy implements BackOffPolicy {
   @Override
   public void backoff(final int attemptCount) {
     try {
-      Thread.sleep(sleepTime(attemptCount));
+      final long sleepTime = sleepTime(attemptCount);
+      Thread.sleep(sleepTime);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }

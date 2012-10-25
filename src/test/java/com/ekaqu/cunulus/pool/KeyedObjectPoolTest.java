@@ -5,6 +5,7 @@ import com.ekaqu.cunulus.retry.BackOffPolicy;
 import com.ekaqu.cunulus.retry.FixedBackOffPolicy;
 import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
+import com.ekaqu.cunulus.retry.Retryers;
 import com.ekaqu.cunulus.util.Block;
 import com.google.common.collect.Lists;
 import com.google.common.math.IntMath;
@@ -202,16 +203,67 @@ public class KeyedObjectPoolTest {
       });
     }
 
-//    executorService.shutdown();
-//    try {
-//      executorService.awaitTermination(50, TimeUnit.MINUTES);
-//    } catch (InterruptedException e) {
-//      Thread.currentThread().interrupt();
-//    }
-    TimeUnit.SECONDS.sleep(10);
+    executorService.shutdown();
+    try {
+      executorService.awaitTermination(50, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+//    TimeUnit.SECONDS.sleep(10);
 
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(callCounter.get(), iterations, "A block didn't execute");
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
+  }
+
+  public void concurrentExpandingPoolWithRetryExecution() throws InterruptedException {
+    final int maxPoolSize = 2;
+    final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()
+        .maxPoolSize(maxPoolSize)
+        .withKeyType(String.class)
+          .factory(stringFactory)
+          .keySupplier(stringFactory)
+          .buildExecutingPool(
+              // 10 should be enough so everyone gets an object
+              // this will cause the last few executions to be slow since they have longer sleeps
+              Retryers.newExponentialBackoffRetryer(10));
+
+    LOGGER.info("Pool {}", pool);
+    Assert.assertEquals(pool.size(), pool.getCorePoolSize(), "CorePoolSize not set at startup");
+
+    // causes the interactions to be more random in hopes that threads hit at different times
+    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
+    final AtomicInteger callCounter = new AtomicInteger();
+
+    final int iterations = 1000;
+    for(int i = 0; i < iterations; i++) {
+      final int finalI = i;
+      executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          pool.execute(new Block<Map.Entry<String, String>>() {
+            @Override
+            public void apply(final Map.Entry<String, String> stringStringEntry) {
+              LOGGER.info("Iteration {}", finalI);
+
+              backOffPolicy.backoff(finalI);
+              callCounter.incrementAndGet();
+            }
+          }, 50, TimeUnit.SECONDS);
+        }
+      });
+    }
+
+    executorService.shutdown();
+    try {
+      executorService.awaitTermination(50, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    LOGGER.info("Pool {}", pool);
+    Assert.assertEquals(callCounter.get(), iterations, "A block didn't execute");
+//    Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to"); // as long as the number of iterations matches, who cares if expanded!
   }
 }
