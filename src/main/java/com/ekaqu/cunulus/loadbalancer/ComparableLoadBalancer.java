@@ -13,7 +13,7 @@ import java.util.List;
  * @param <E> element type
  */
 @Beta
-public abstract class ComparatorLoadBalancer<E> implements LoadBalancer<E> {
+public abstract class ComparableLoadBalancer<E> implements LoadBalancer<E> {
 
   private final Comparator<E> comparator;
 
@@ -22,16 +22,16 @@ public abstract class ComparatorLoadBalancer<E> implements LoadBalancer<E> {
    *
    * @param comparator used to compare elements
    */
-  public ComparatorLoadBalancer(final Comparator<E> comparator) {
+  public ComparableLoadBalancer(final Comparator<E> comparator) {
     this.comparator = Preconditions.checkNotNull(comparator);
   }
 
   /**
-   * Delegates load balancing to {@link ComparatorLoadBalancer#get(java.util.List, java.util.Comparator)}
+   * Delegates load balancing to {@link ComparableLoadBalancer#get(java.util.List, java.util.Comparator)}
    * passing in the comparator provided in the constructor
    *
    * @param items to load balance
-   * @return if items is null or empty then return null, else will call {@link ComparatorLoadBalancer#get(java.util.List, java.util.Comparator)}
+   * @return if items is null or empty then return null, else will call {@link ComparableLoadBalancer#get(java.util.List, java.util.Comparator)}
    */
   @Override
   public E get(@Nullable final List<E> items) {

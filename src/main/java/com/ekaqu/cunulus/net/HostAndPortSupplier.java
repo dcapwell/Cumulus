@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A {@link Supplier} for {@link HostAndPort}s that uses a list to load balance {@link HostAndPort}
+ * A {@link Supplier} for {@link HostAndPort} that uses a list to load balance.
  */
 //TODO should this be replaced with CollectionLoadBalancer now that that exists?
 @ThreadSafe
-public class StaticHostAndPortSupplier implements Supplier<HostAndPort> {
+public class HostAndPortSupplier implements Supplier<HostAndPort> {
 
   private final List<HostAndPort> addresses;
   private final AtomicInteger counter = new AtomicInteger();
@@ -26,49 +26,49 @@ public class StaticHostAndPortSupplier implements Supplier<HostAndPort> {
    * Creates a new Supplier that load-balances over the provided list
    * @param addresses list of {@link HostAndPort} that must have size greater than zero
    */
-  public StaticHostAndPortSupplier(final List<HostAndPort> addresses) {
+  public HostAndPortSupplier(final List<HostAndPort> addresses) {
     Preconditions.checkArgument(addresses.size() > 0, "Must define at least one address");
 
     this.addresses = ImmutableList.copyOf(addresses);
   }
 
   /**
-   * Creates a new StaticHostAndPortSupplier based off the connection string provided.  All hosts should be
+   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be
    * splittable by ','.
    */
-  public static StaticHostAndPortSupplier fromString(final String connections) {
+  public static HostAndPortSupplier fromString(final String connections) {
     List<HostAndPort> addresses = Lists.newArrayList();
     for(final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
       addresses.add(HostAndPort.fromString(pair));
     }
-    return new StaticHostAndPortSupplier(addresses);
+    return new HostAndPortSupplier(addresses);
   }
 
   /**
-   * Creates a new StaticHostAndPortSupplier based off the connection string provided.  All hosts should be
+   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be
    * splittable by ','.
    * @param defaultPort defaultPort is connection string doesn't contain one
    */
-  public static StaticHostAndPortSupplier fromString(final String connections, final int defaultPort) {
+  public static HostAndPortSupplier fromString(final String connections, final int defaultPort) {
     List<HostAndPort> addresses = Lists.newArrayList();
     for(final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
       addresses.add(HostAndPort.fromString(pair).withDefaultPort(defaultPort));
     }
-    return new StaticHostAndPortSupplier(addresses);
+    return new HostAndPortSupplier(addresses);
   }
 
   /**
-   * Creates a new StaticHostAndPortSupplier based off the host/port parts.
+   * Creates a new HostAndPortSupplier based off the host/port parts.
    */
-  public static StaticHostAndPortSupplier fromParts(final String host, final int port) {
-    return new StaticHostAndPortSupplier(Arrays.asList(HostAndPort.fromParts(host, port)));
+  public static HostAndPortSupplier fromParts(final String host, final int port) {
+    return new HostAndPortSupplier(Arrays.asList(HostAndPort.fromParts(host, port)));
   }
 
   /**
-   * Creates a new StaticHostAndPortSupplier based off the host/port parts.
+   * Creates a new HostAndPortSupplier based off the host/port parts.
    */
-  public static StaticHostAndPortSupplier of(final HostAndPort... hostAndPort) {
-    return new StaticHostAndPortSupplier(Arrays.asList(hostAndPort));
+  public static HostAndPortSupplier of(final HostAndPort... hostAndPort) {
+    return new HostAndPortSupplier(Arrays.asList(hostAndPort));
   }
 
   @Override

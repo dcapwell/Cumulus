@@ -14,7 +14,7 @@ import java.util.Random;
 @Beta
 public class RandomLoadBalancer<E> implements LoadBalancer<E> {
 
-  private final Random random = new Random();
+  private final Random random = new Random(0l);
 
   /**
    * Randomly selects an element in the list.

@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.loadbalancer;
 
 import com.google.common.annotations.Beta;
+import com.google.common.annotations.VisibleForTesting;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -15,7 +16,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Beta
 public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
 
-  private final AtomicInteger index = new AtomicInteger(0);
+  private final AtomicInteger index;
+
+  public RoundRobinLoadBalancer() {
+    index = new AtomicInteger(0);
+  }
+
+  @VisibleForTesting
+  RoundRobinLoadBalancer(final int startingSize) {
+    index = new AtomicInteger(startingSize);
+  }
 
   /**
    * Uses Round Robin to select an element from the list.
@@ -29,7 +39,7 @@ public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
   public E get(@Nullable final List<E> items) {
     if (items == null || items.isEmpty()) return null;
 
-    int thisIndex = Math.abs(index.getAndIncrement());
-    return items.get(thisIndex % items.size());
+    int thisIndex = Math.abs(index.getAndIncrement()) % items.size();
+    return items.get(thisIndex);
   }
 }
