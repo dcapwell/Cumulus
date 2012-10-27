@@ -13,9 +13,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Helps build Pool objects with a streamlined interface and sensible defaults.
+ * Helps build {@link Pool} objects with a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> and sensible defaults.
  * <p/>
  * Example building a {@link ExecutingPool} backed by a {@link Pool} using the builder
+ * <pre>
  * {@code
  * ExecutingPool<T> pool = new PoolBuilder<T>()
  *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
@@ -24,15 +25,19 @@ import java.util.concurrent.ThreadFactory;
  *                    .maxPoolSize(4) // optional max size the pool can reach
  *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  * <p/>
  * A simpler example
+ * <pre>
  * {@code
  * ExecutingPool<T> pool = new PoolBuilder<T>()
  *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
  *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  * <p/>
  * How to build a {@link ExecutingPool} backed by {@link KeyedPool}
+ * <pre>
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .corePoolSize(2) // optional size the pool should try to stay around
@@ -45,8 +50,10 @@ import java.util.concurrent.ThreadFactory;
  *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  * <p/>
  * A simpler example building a {@link ExecutingPool} backed by {@link KeyedPool}
+ * <pre>
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .withKeyType(String.class)
@@ -54,6 +61,7 @@ import java.util.concurrent.ThreadFactory;
  *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  *
  * @param <T> type of the pool to build
  */
@@ -111,9 +119,8 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * ExecutorService pools may use to run background tasks
-   * <p/>
-   * If no executorService is provided a single threaded executor will be created for the pool
+   * ExecutorService pools may use to run background tasks. If no executorService is provided a single threaded executor
+   * will be created for the pool
    *
    * @param executorService used for background tasks
    * @return this builder

@@ -13,19 +13,18 @@ import java.util.concurrent.Callable;
 public class Amazon {
 
   /**
-   * Meta Data URL for query current instances host metadata
+   * Meta Data URL for current instances host metadata
    */
   public final static String AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/";
 
   /**
-   * User defined meta data
+   * URL for user defined meta data
    */
   public static final String AWS_USERDATA_URL = "http://169.254.169.254/latest/user-data/";
 
   /**
-   * Enum class for working with instance meta data.  For a complete list of what is available here, please
-   * go to {@link http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/AESDG-chapter-instancedata.html}.
-   *
+   * Enum class for working with ec2 instance meta data.  A complete list of what is available can be found <a href="http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/AESDG-chapter-instancedata.html">here</a>.
+   * <p/>
    * All docs for each enum is also from the same link.
    */
   public static enum MetaData {
@@ -68,7 +67,7 @@ public class Amazon {
     INSTANCE_ID("instance-id"),
 
     /**
-     * The type of instance to launch. For more information, see Instance Types {@link http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html}.
+     * The type of instance to launch. For more information, see <a href="http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html>Instance Types</a>.
      */
     INSTANCE_TYPE("instance-type"),
 
@@ -168,13 +167,13 @@ public class Amazon {
      * @throws IOException when unable to get value from AWS
      */
     public String remoteFetchValue() throws IOException {
-      URL url = getUrl();
+      final URL url = getUrl();
       return Resources.toString(url, Charsets.UTF_8);
     }
 
     /**
      * Does an HTTP request to the AWS MetaData URL to fetch this value.  This will retry based off the retryer defined
-     *
+     * <p/>
      * This will use ExponentialBackoff and only attempt to retry 3 times
      *
      * @return meta data value
@@ -201,7 +200,7 @@ public class Amazon {
         });
       } catch (Exception e) {
         // unable to fetch value, throw error
-        if(e instanceof IOException) {
+        if (e instanceof IOException) {
           throw (IOException) e;
         }
         throw new AssertionError("The exception should have been an IOException but was " + e.getClass().getName());
@@ -210,20 +209,20 @@ public class Amazon {
 
     /**
      * Simple CLI for querying amazon meta data.
-     *
+     * <p/>
      * Sample request:
-     *
+     * <p/>
      * java -cp cumulus-0.0.1-SNAPSHOT.jar:guava-13.0.1.jar com.ekaqu.cunulus.aws.Amazon\$MetaData PUBLIC_HOSTNAME
      */
     public static void main(String[] args) throws IOException {
-      if(args.length > 0) {
+      if (args.length > 0) {
         final String key = args[0].toUpperCase().trim();
         final MetaData metaData = MetaData.valueOf(key);
         final String value = metaData.remoteFetchValueWithRetries();
         System.out.printf("%s => %s\r\n", metaData, value);
       } else {
         StringBuilder sb = new StringBuilder("Please supply a meta data name.  The following are valid:%n");
-        for(MetaData e : MetaData.values()) {
+        for (MetaData e : MetaData.values()) {
           sb.append(e.toString()).append("\r\n");
         }
         System.out.println(sb);

@@ -11,31 +11,36 @@ import java.util.concurrent.TimeUnit;
 /**
  * Decorates a pool and enables functional style access to the contents of a pool.
  * <p/>
- * When working with a pool, the normal code flow is as follows: {@code
+ * When working with a pool, the normal code flow is as follows:
+ * <pre>
+ * {@code
  * final Optional<T> opt = pool.borrow();
  * if(opt.isPresent()) {
- * final T obj = opt.get();
- * try {
- * LOGGER.info("Object given {}", obj);
- * pool.returnToPool(obj);
- * } catch (Throwable t) {
- * pool.returnToPool(obj, t);
+ *  final T obj = opt.get();
+ *  try {
+ *    LOGGER.info("Object given {}", obj);
+ *    pool.returnToPool(obj);
+ *  } catch (Throwable t) {
+ *    pool.returnToPool(obj, t);
+ *  }
  * }
  * }
- * }
+ * </pre>
  * With the {@link ExecutingPool} you can just pass in a function that will work with the pooled object and let
  * {@link ExecutingPool} handle returning the object to the pool.
  * <p/>
- * Example: {@code
+ * Example:
+ * <pre>
+ * {@code
  * executingPool.execute(new Block<T>() {
- *
- * @Override public void apply(final T obj) {
- * LOGGER.info("Object given {}", obj);
- * }
+ *    public void apply(final T obj) {
+ *      LOGGER.info("Object given {}", obj);
+ *    }
  * });
  * }
+ * </pre>
  * <p/>
- * When exceptions are thrown, they will be propagated up as a RuntimeException.  If the exception is of type {@link Error}
+ * When exceptions are thrown, they will be propagated up as a {@link RuntimeException}.  If the exception is of type {@link Error}
  * or {@link RuntimeException} then it is rethrown
  */
 public abstract class ExecutingPool<T> extends ForwardingPool<T> {
@@ -60,7 +65,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
 
   /**
-   * Creates a new {@link ExecutingPool} that.  This executing pool will call the execute block in the same thread and
+   * Creates a new {@link ExecutingPool}.  This executing pool will call the execute block in the same thread and
    * at most one time.
    */
   public static <T> ExecutingPool<T> executor(final Pool<T> pool) {

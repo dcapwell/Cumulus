@@ -15,6 +15,7 @@ public class MaxLoadBalancer<E> extends ComparatorLoadBalancer<E> {
 
   /**
    * Creates a new MaxLoadBalancer that will return the largest element.
+   *
    * @param comparator used to define largest
    */
   public MaxLoadBalancer(final Comparator<E> comparator) {

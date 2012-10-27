@@ -3,11 +3,11 @@ package com.ekaqu.cunulus.util;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Basic counter class backed by a long.  Methods are the same as AtomicLong so it should be easy to swap between the two.
+ * Basic counter class backed by a long.  Methods are the same as {@link java.util.concurrent.atomic.AtomicLong} so it should be easy to swap between the two.
  * <p/>
  * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
  * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicLong}
- *
+ * <p/>
  * If you can get away with using a primitive long, use that instead of this class since its faster.
  */
 @NotThreadSafe
@@ -39,7 +39,7 @@ public class LongCounter extends Number {
 
   /**
    * Eventually sets to the given value.
-   *
+   * <p/>
    * This method is the same as {@link LongCounter#set(long)} but here to match {@link java.util.concurrent.atomic.AtomicLong}
    */
   public final void lazySet(long i) {
@@ -48,6 +48,7 @@ public class LongCounter extends Number {
 
   /**
    * Set the value and return the old value.
+   *
    * @param i value to set
    * @return old value
    */
@@ -60,6 +61,7 @@ public class LongCounter extends Number {
   /**
    * Set the counter to update iff {@link com.ekaqu.cunulus.util.LongCounter#get()} == expect.  Returns if
    * value was accepted.
+   *
    * @param expect what the current value should be
    * @param update value to set
    * @return if the value was accepted
@@ -75,8 +77,9 @@ public class LongCounter extends Number {
   /**
    * Set the counter to update iff {@link com.ekaqu.cunulus.util.LongCounter#get()} == expect.  Returns if
    * value was accepted.
-   *
+   * <p/>
    * This is the same as {@link LongCounter#compareAndSet(long, long)} but here to match {@link java.util.concurrent.atomic.AtomicLong}
+   *
    * @param expect what the current value should be
    * @param update value to set
    * @return if the value was accepted
@@ -87,6 +90,7 @@ public class LongCounter extends Number {
 
   /**
    * Increments by one the current value and returns the old value
+   *
    * @return value before this method was executed
    */
   public final long getAndIncrement() {
@@ -97,6 +101,7 @@ public class LongCounter extends Number {
 
   /**
    * Decrements by one the current value and returns the old value
+   *
    * @return value before this method was executed
    */
   public final long getAndDecrement() {
@@ -107,6 +112,7 @@ public class LongCounter extends Number {
 
   /**
    * Adds by i the current value and returns the old value
+   *
    * @param i value to add
    * @return value before this method was executed
    */
@@ -118,6 +124,7 @@ public class LongCounter extends Number {
 
   /**
    * Increments by one the current value; returns the result.
+   *
    * @return incremented value
    */
   public final long incrementAndGet() {
@@ -126,6 +133,7 @@ public class LongCounter extends Number {
 
   /**
    * Decrements by one the current value; returns the result.
+   *
    * @return Decremented value
    */
   public final long decrementAndGet() {
@@ -134,6 +142,7 @@ public class LongCounter extends Number {
 
   /**
    * Adds by i the current value; returns the result.
+   *
    * @return Added value
    */
   public final long addAndGet(long i) {

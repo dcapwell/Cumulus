@@ -13,11 +13,12 @@ import java.util.concurrent.TimeUnit;
  * should return a valid value.
  * <p/>
  * It is recommended that while working with pools that the {@link ExecutingPool} is used with a
- * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error causes so
- * you can focus just on your logic.  Also it is best to use the {@link PoolBuilder} for creating pools.
+ * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error cases for you.  Also it is best
+ * to use the {@link PoolBuilder} for creating pools.
  * The builder always returns a thread safe pool and sane defaults.
  * <p/>
  * Example building with the {@link PoolBuilder}
+ * <pre>
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .corePoolSize(2) // optional size the pool should try to stay around
@@ -27,18 +28,21 @@ import java.util.concurrent.TimeUnit;
  *                                              .coreSizePerKey(2) // optional size the underlining pools should stay around
  *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
  *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  * <p/>
  * A simpler example
+ * <pre>
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .withKeyType(String.class)
  *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  *
  * @param <K> key type
  * @param <V> pool value type

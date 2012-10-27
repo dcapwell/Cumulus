@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A BackOffPolicy that will sleep for an exponentially increasing period of time.
  *
- * The exponential algorithm is the same that was found in astyanax {@link https://github.com/Netflix/astyanax}
+ * The exponential algorithm is the same that was found in <a href="https://github.com/Netflix/astyanax">astyanax</a>.
  */
 @ThreadSafe
 public class ExponentialBackOffPolicy extends AbstractSleepingBackOffPolicy {

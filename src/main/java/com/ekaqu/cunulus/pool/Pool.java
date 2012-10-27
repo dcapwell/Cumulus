@@ -12,11 +12,12 @@ import java.util.concurrent.TimeUnit;
  * should be thread safe; this interface does not force thread safety though.
  * <p/>
  * It is recommended that while working with pools that the {@link ExecutingPool} is used with a
- * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error causes so
- * you can focus just on your logic.  Also it is best to use the {@link PoolBuilder} for creating pools.
- * The builder always returns a thread safe pool and with a few defaults to simplify pool creation.
+ * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error cases.  Also it is best to use the
+ * {@link PoolBuilder} for creating pools.  The builder always returns a thread safe pool and with a few defaults to
+ * simplify pool creation.
  * <p/>
  * Example building a Pool using the builder
+ * <pre>
  * {@code
  * ExecutingPool<T> pool = new PoolBuilder<T>()
  *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
@@ -25,13 +26,16 @@ import java.util.concurrent.TimeUnit;
  *                    .maxPoolSize(4) // optional max size the pool can reach
  *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  * <p/>
  * A simpler example
+ * <pre>
  * {@code
  * ExecutingPool<T> pool = new PoolBuilder<T>()
  *                    .objectFactory(poolValueFactory) // defines how to create new pooled entities
  *                    .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
+ * </pre>
  *
  * @param <T> type of the object in the pool
  */
@@ -40,7 +44,7 @@ public interface Pool<T> extends Service, Sized {
 
   /**
    * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool
-   * then the returned value will be {@code Optional#absent()}
+   * then the returned value will be {@link com.google.common.base.Optional#absent()} )}
    *
    * @throws ClosedPoolException pool is closed
    */
@@ -48,22 +52,26 @@ public interface Pool<T> extends Service, Sized {
 
   /**
    * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this
-   * method is allowed to block for.  If the time has exceeded then the returned value will be empty.
+   * method is allowed to block for.  If the time has exceeded or the pool is empty then the returned value will be
+   * {@link com.google.common.base.Optional#absent()}.
    *
    * @throws ClosedPoolException pool is closed
    */
   Optional<T> borrow(long timeout, TimeUnit unit);
 
   /**
-   * Returns an object to the pool
+   * Returns an object to the pool.  This method might not effect {@link com.ekaqu.cunulus.pool.Pool#size()} since
+   * a pool may reject the object presented.
    *
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj);
 
   /**
-   * Returns an object to the pool with the last exception thrown.
+   * Returns an object to the pool with the last exception thrown. This method might not effect {@link com.ekaqu.cunulus.pool.Pool#size()} since
+   * a pool may reject the object presented.
    *
+   * @param throwable thrown when last used the object
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj, Throwable throwable);

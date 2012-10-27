@@ -33,13 +33,13 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
   /**
    * Returns the same element over and over again until a given condition has been met.  Once this happens
    * it will choose a new element.
-   *
+   * <p/>
    * The following conditions are used to determine "failover":
    * <ul>
-   *   <li>no element has been choosen</li>
-   *   <li>user notifies load balancer that an exception has happened</li>
+   * <li>no element has been choosen</li>
+   * <li>user notifies load balancer that an exception has happened</li>
    * </ul>
-   *
+   * <p/>
    * If
    * If the current element is not in the provided list, then currently this will return null.
    *
@@ -66,7 +66,7 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
 
   /**
    * Notifies the load balancer of any errors see while using the last returned element.
-   *
+   * <p/>
    * This causes a "failover"
    *
    * @param throwable error thrown while using last returned element

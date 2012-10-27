@@ -3,8 +3,8 @@ package com.ekaqu.cunulus.util;
 /**
  * Implementing this interface allows an object to indicate that its elements
  * may be efficiently counted. Counting is always less than O(n).
- *
- * @see Java8's Sized Interface
+ * <p/>
+ * This interface is modeled after Java 8's Sized Interface
  */
 public interface Sized {
   /**

@@ -3,11 +3,11 @@ package com.ekaqu.cunulus.util;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Basic counter class backed by a int.  Methods are the same as AtomicInteger so it should be easy to swap between the two.
+ * Basic counter class backed by a int.  Methods are the same as {@link java.util.concurrent.atomic.AtomicInteger} so it should be easy to swap between the two.
  * <p/>
  * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
  * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicInteger}.
- *
+ * <p/>
  * If you can get away with using a primitive int, use that instead of this class since its faster.
  */
 @NotThreadSafe
@@ -39,7 +39,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Eventually sets to the given value.
-   *
+   * <p/>
    * This method is the same as {@link IntegerCounter#set(int)} but here to match {@link java.util.concurrent.atomic.AtomicInteger}
    */
   public final void lazySet(int i) {
@@ -48,6 +48,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Set the value and return the old value.
+   *
    * @param i value to set
    * @return old value
    */
@@ -60,6 +61,7 @@ public class IntegerCounter extends Number {
   /**
    * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if
    * value was accepted.
+   *
    * @param expect what the current value should be
    * @param update value to set
    * @return if the value was accepted
@@ -75,8 +77,9 @@ public class IntegerCounter extends Number {
   /**
    * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if
    * value was accepted.
-   *
+   * <p/>
    * This is the same as {@link IntegerCounter#compareAndSet(int, int)} but here to match {@link java.util.concurrent.atomic.AtomicInteger}
+   *
    * @param expect what the current value should be
    * @param update value to set
    * @return if the value was accepted
@@ -87,6 +90,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Increments by one the current value and returns the old value
+   *
    * @return value before this method was executed
    */
   public final int getAndIncrement() {
@@ -97,6 +101,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Decrements by one the current value and returns the old value
+   *
    * @return value before this method was executed
    */
   public final int getAndDecrement() {
@@ -107,6 +112,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Adds by i the current value and returns the old value
+   *
    * @param i value to add
    * @return value before this method was executed
    */
@@ -118,6 +124,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Increments by one the current value; returns the result.
+   *
    * @return incremented value
    */
   public final int incrementAndGet() {
@@ -126,6 +133,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Decrements by one the current value; returns the result.
+   *
    * @return Decremented value
    */
   public final int decrementAndGet() {
@@ -134,6 +142,7 @@ public class IntegerCounter extends Number {
 
   /**
    * Adds by i the current value; returns the result.
+   *
    * @return Added value
    */
   public final int addAndGet(int i) {

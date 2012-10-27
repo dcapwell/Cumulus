@@ -9,7 +9,7 @@ import com.google.common.annotations.Beta;
  * @param <V> output object
  */
 @Beta
-public interface Factory<T,V> {
+public interface Factory<T, V> {
 
   /**
    * Get an object of the appropriate type.  The returned value may or may not be a new object.

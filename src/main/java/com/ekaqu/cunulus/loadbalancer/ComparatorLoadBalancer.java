@@ -19,6 +19,7 @@ public abstract class ComparatorLoadBalancer<E> implements LoadBalancer<E> {
 
   /**
    * Defines the {@link Comparator} to use for the load balancer
+   *
    * @param comparator used to compare elements
    */
   public ComparatorLoadBalancer(final Comparator<E> comparator) {
@@ -43,7 +44,7 @@ public abstract class ComparatorLoadBalancer<E> implements LoadBalancer<E> {
    * Load balance items using a comparator. It is good practice to not modify the items list but this
    * is not guarantied by this interface.
    *
-   * @param items to load balance
+   * @param items      to load balance
    * @param comparator used to compare elements in the list
    * @return element in the list
    */

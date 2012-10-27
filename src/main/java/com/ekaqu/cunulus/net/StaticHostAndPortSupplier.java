@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A {@link Supplier} for {@link HostAndPort}s that uses a list to load balance {@link HostAndPort}
  */
+//TODO should this be replaced with CollectionLoadBalancer now that that exists?
 @ThreadSafe
 public class StaticHostAndPortSupplier implements Supplier<HostAndPort> {
 

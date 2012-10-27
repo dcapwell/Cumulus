@@ -15,7 +15,7 @@ import java.util.List;
  * A Collection Load Balancer delegates collection operations to a provided collections object and
  * uses that same object while load balancing.  Load balancing is done via {@link com.ekaqu.cunulus.loadbalancer.CollectionLoadBalancer#get()}
  * which will filter out results based off a {@link Predicate} and pass the elements along to {@link CollectionLoadBalancer#get(java.util.List)}.
- *
+ * <p/>
  * This load balancer also delegates the results to another load balancer
  *
  * @param <E> element type
@@ -30,9 +30,9 @@ public class CollectionLoadBalancer<E> extends ForwardingCollection<E> implement
   /**
    * Creates a new CollectionLoadBalancer that wraps a load balancer around the given collection
    *
-   * @param items to load balancer
+   * @param items                to load balancer
    * @param delegateLoadBalancer used for all load balancer operations
-   * @param filterPredicate used to filter results before load balancing
+   * @param filterPredicate      used to filter results before load balancing
    */
   public CollectionLoadBalancer(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer, final Predicate<E> filterPredicate) {
     this.filterPredicate = Preconditions.checkNotNull(filterPredicate);
@@ -41,11 +41,10 @@ public class CollectionLoadBalancer<E> extends ForwardingCollection<E> implement
   }
 
   /**
-   * Creates a new CollectionLoadBalancer that wraps a load balancer around the given collection
+   * Creates a new CollectionLoadBalancer that wraps a load balancer around the given collection. This constructor does
+   * no filtering of data
    *
-   * This constructor does  no filtering of data
-   *
-   * @param items to load balancer
+   * @param items                to load balancer
    * @param delegateLoadBalancer used for all load balancer operations
    */
   public CollectionLoadBalancer(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer) {
