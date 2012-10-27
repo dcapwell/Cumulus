@@ -7,6 +7,8 @@ import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.retry.Retryers;
 import com.ekaqu.cunulus.util.Block;
+import com.ekaqu.cunulus.util.Factory;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.math.IntMath;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -16,6 +18,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.math.RoundingMode;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -26,10 +29,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.booleanThat;
 import static org.mockito.Matchers.intThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Test(groups = "Unit")
 public class KeyedObjectPoolTest {
@@ -267,5 +272,29 @@ public class KeyedObjectPoolTest {
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(callCounter.get(), iterations, "A block didn't execute");
 //    Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to"); // as long as the number of iterations matches, who cares if expanded!
+  }
+
+  public void closedPoolGetsRemoved() {
+    Supplier<String> keySupplier = mock(Supplier.class);
+    when(keySupplier.get()).thenReturn("1", "2", "3");
+    ObjectFactory killPoolFactory = mock(ObjectFactory.class);
+    when(killPoolFactory.validate(any(String.class), any(Throwable.class))).thenReturn(ObjectFactory.State.CLOSE_POOL);
+    when(killPoolFactory.get()).thenReturn("1", "2", "3");
+
+    Factory<String, ObjectFactory<String>> mockFactory = mock(Factory.class);
+    when(mockFactory.get(any(String.class))).thenReturn(killPoolFactory);
+
+    final KeyedPool<String, String> pool = new PoolBuilder<String>()
+        .corePoolSize(3)
+        .maxPoolSize(6)
+        .withKeyType(String.class)
+          .keySupplier(keySupplier)
+          .factory(mockFactory).build();
+
+    Assert.assertEquals(pool.size(), 3 * 3);
+
+    pool.returnToPool(new AbstractMap.SimpleEntry<String, String>("1", "close"));
+
+    Assert.assertEquals(pool.size(), 2 * 3);
   }
 }

@@ -164,16 +164,23 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
 
   @Override
   public void returnToPool(final Map.Entry<K, V> obj, final Throwable throwable) {
-    final K hostPort = Preconditions.checkNotNull(obj.getKey());
+    final K key = Preconditions.checkNotNull(obj.getKey());
     final V object = Preconditions.checkNotNull(obj.getValue());
 
-    Pool<V> pool = poolMap.get(hostPort);
+    checkNotClosed();
+
+    Pool<V> pool = poolMap.get(key);
     if (pool != null) {
       pool.returnToPool(object, throwable);
-      notifyAdded();
+      if(pool.isRunning()) {
+        notifyAdded();
+      } else {
+        // pool is closing or is closed, so remove
+        poolMap.remove(key);
+      }
     } else {
       //TODO should pool be enhanced to support this?
-      throw new IllegalArgumentException("Host " + hostPort + " doesn't have a pool");
+      throw new IllegalArgumentException("Key " + key + " doesn't have a pool");
     }
   }
 

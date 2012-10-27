@@ -10,15 +10,20 @@
 
   <description>Cumulus is a common collection of useful classes for developing server applications.</description>
 
-  <scm>
-    <connection>scm:git:git@github.com:dcapwell/Cumulus.git</connection>
-    <url>https://github.com/dcapwell/Cumulus</url>
-    <developerConnection>scm:git:git@github.com:dcapwell/Cumulus.git</developerConnection>
-  </scm>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <scm>
+    <connection>scm:git:git@github.com:dcapwell/Cumulus.git</connection>
+    <url>git@github.com:dcapwell/Cumulus.git</url>
+    <developerConnection>scm:git:git@github.com:dcapwell/Cumulus.git</developerConnection>
+  </scm>
+
+  <issueManagement>
+    <system>github.com</system>
+    <url>https://github.com/dcapwell/Cumulus/issues</url>
+  </issueManagement>
 
   <dependencies>
     <dependency>
@@ -33,7 +38,6 @@
       <version>2.0.1</version>
       <scope>provided</scope>
     </dependency>
-
 
     <!-- Test Dependencies -->
     <dependency>
@@ -51,7 +55,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.0.6</version>
+      <version>1.0.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>
