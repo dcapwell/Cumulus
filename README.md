@@ -49,7 +49,7 @@ ExecutingPool<Connection> pool = new PoolBuilder<Connection>()
        .objectFactory(connectionFactory) // defines how to create new pooled entities
        .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
 
-pool.execute(new Block<String>() {
+pool.execute(new Block<Connection>() {
   @Override
   public void apply(final Connection connection) {
     connection.append(data);
