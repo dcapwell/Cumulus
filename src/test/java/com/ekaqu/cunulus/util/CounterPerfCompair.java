@@ -1,12 +1,12 @@
 package com.ekaqu.cunulus.util;
 
+import com.ekaqu.cunulus.ThreadPools;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.cliffc.high_scale_lib.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +19,6 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,8 +32,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p/>
  * For single threaded environments it seems that both Atomic classes out perform the Counter.
  * For multi threaded environments it really depends on the amount of parallel operations.  Once parallel operations get
- *  large enough the counter class starts to break away from the Atomic classes.  Interesting note is that both Counter
- *  and AtomicLong start to pull away from AtomicInt which seems to get slower the more operations happening.
+ * large enough the counter class starts to break away from the Atomic classes.  Interesting note is that both Counter
+ * and AtomicLong start to pull away from AtomicInt which seems to get slower the more operations happening.
  */
 @Test(groups = "Experiment")
 public class CounterPerfCompair {
@@ -43,9 +41,7 @@ public class CounterPerfCompair {
 
   private final StringBuilder report = new StringBuilder();
 
-  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
-  private final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(
-      Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2, threadFactory));
+  private final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(ThreadPools.getMaxSizePool(CounterPerfCompair.class));
 
   @BeforeClass(alwaysRun = true)
   public void begin() {
@@ -100,7 +96,7 @@ public class CounterPerfCompair {
    * With one iteration the order in speed is as follows:
    * <p/>
    * AtomicLong, AtomicInteger, Counter
-   *
+   * <p/>
    * Int++ not added above since its not mutable when marked final which limits usage.  Speed is an order of magnitude faster as expected
    */
   @Test(dataProvider = "iterationCounts")

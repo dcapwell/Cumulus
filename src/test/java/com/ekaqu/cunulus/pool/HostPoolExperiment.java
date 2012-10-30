@@ -34,9 +34,9 @@ public class HostPoolExperiment {
     Factory<HostAndPort, ObjectFactory<String>> factory = mock(Factory.class);
 
     KeyedObjectPool<HostAndPort, String> pool = new KeyedObjectPool<HostAndPort, String>(hostAndPortSupplier, factory,
-        MoreExecutors.sameThreadExecutor(), 2, 4 , 2, 4);
+        MoreExecutors.sameThreadExecutor(), 2, 4, 2, 4);
 
-    ExecutingPool<Map.Entry<HostAndPort,String>> executingPool = ExecutingPool.executor(pool);
+    ExecutingPool<Map.Entry<HostAndPort, String>> executingPool = ExecutingPool.executor(pool);
 
     // when
     HostAndPort hostAndPort = HostAndPort.fromParts("localhost", 80);

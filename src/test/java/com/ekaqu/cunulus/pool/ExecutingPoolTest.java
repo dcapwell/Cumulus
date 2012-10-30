@@ -1,24 +1,20 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.ThreadPools;
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
 import com.ekaqu.cunulus.retry.BackOffPolicy;
-import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.retry.Retryer;
 import com.ekaqu.cunulus.retry.Retryers;
 import com.ekaqu.cunulus.util.Block;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,8 +31,6 @@ public class ExecutingPoolTest {
   private final Retryer retryer = Retryers.newRetryer(3);
 
   private final StringObjectFactory stringFactory = new StringObjectFactory();
-  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
-  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
   @BeforeClass(alwaysRun = true)
   public void before() {
@@ -121,8 +115,6 @@ public class ExecutingPoolTest {
   }
 
 
-
-
   public void retryExecutor() {
     // given
     ExecutingPool<String> executingPool = ExecutingPool.retryingExecutor(pool, retryer);
@@ -198,7 +190,7 @@ public class ExecutingPoolTest {
   @Test(groups = "Experiment", description = "A pool without retries doesn't have a guaranty that a object is returned.  " +
       "This test is mostly to test timing and not a unit test")
   public void concurrentBlockExecute() throws InterruptedException {
-    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
 
     final ExecutingPool<String> pool = new PoolBuilder<String>()
         .objectFactory(stringFactory).executorService(executorService)
@@ -207,7 +199,7 @@ public class ExecutingPoolTest {
     final AtomicInteger counter = new AtomicInteger();
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
     final int iterations = 1000;
-    for(int i = 0; i < iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
@@ -233,7 +225,7 @@ public class ExecutingPoolTest {
   }
 
   public void concurrentBlockRetryExecute() throws InterruptedException {
-    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
 
     final ExecutingPool<String> pool = new PoolBuilder<String>()
         .objectFactory(stringFactory).executorService(executorService)
@@ -246,7 +238,7 @@ public class ExecutingPoolTest {
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
 //    final BackOffPolicy backOffPolicy = new NoBackoffPolicy();
     final int iterations = 1000;
-    for(int i = 0; i < iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override

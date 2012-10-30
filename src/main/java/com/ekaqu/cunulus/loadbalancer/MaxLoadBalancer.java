@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.loadbalancer;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Ordering;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,7 +37,7 @@ public class MaxLoadBalancer<E> extends ComparableLoadBalancer<E> {
 //      }
 //    }
 //    return max;
-    Collections.sort(items, comparator);
+    Collections.sort(items, Ordering.from(comparator).reverse());
     return items.get(0); // { get(List) should verify that at least one element is in the list
   }
 }

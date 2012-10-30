@@ -37,7 +37,7 @@ public class MinLoadBalancer<E> extends ComparableLoadBalancer<E> {
 //      }
 //    }
 //    return min;
-    Collections.sort(items, Ordering.from(comparator).reverse());
+    Collections.sort(items, comparator);
     return items.get(0); // { get(List) should verify that at least one element is in the list
   }
 }

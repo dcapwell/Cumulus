@@ -1,14 +1,12 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.ThreadPools;
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
-import com.google.common.base.Optional;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +20,7 @@ import static org.mockito.Mockito.when;
 public class ObjectPoolTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectPoolTest.class.getName());
 
-  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(ThreadPools.DAEMON_FACTORY);
   private final StringObjectFactory stringFactory = new StringObjectFactory();
 
   public void startPool() {
@@ -32,7 +30,7 @@ public class ObjectPoolTest {
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), 5, "CorePoolSize not set at startup");
 
-    for(int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
       String obj = pool.borrow().get();
       int index = Integer.parseInt(obj.substring(obj.length() - 1));
 
@@ -49,7 +47,7 @@ public class ObjectPoolTest {
     final Pool<String> pool = new ObjectPool<String>(new StringFactory(), executorService, 5, 10);
     pool.startAndWait();
 
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
       final String obj = pool.borrow(50, TimeUnit.SECONDS).get();
 
       executorService.schedule(new Runnable() {
@@ -79,7 +77,7 @@ public class ObjectPoolTest {
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), 5, "CorePoolSize not set at startup");
 
-    for(int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
       final String obj = pool.borrow(50, TimeUnit.SECONDS).get();
 
       executorService.schedule(new Runnable() {
@@ -109,7 +107,7 @@ public class ObjectPoolTest {
     pool.startAndWait();
 
     // take the elements out of the queue so its empty
-    for(int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
       pool.borrow();
     }
 
@@ -133,7 +131,7 @@ public class ObjectPoolTest {
     LOGGER.info("Pool {}", pool);
 
     // take the elements out of the queue so its empty
-    for(int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
       pool.borrow();
     }
 
@@ -188,7 +186,7 @@ public class ObjectPoolTest {
 
   /**
    * Check if the pool is empty at the right stages.
-   *
+   * <p/>
    * empty happens when the pool has no elements in it.  this doesn't mean that the pool can't expand though.
    */
   public void isEmpty() {
@@ -200,7 +198,7 @@ public class ObjectPoolTest {
         .build();
 
     Assert.assertFalse(pool.isEmpty());
-    for(int i = 0, maxSize = pool.getCorePoolSize(); i < maxSize; i++) {
+    for (int i = 0, maxSize = pool.getCorePoolSize(); i < maxSize; i++) {
       Assert.assertFalse(pool.isEmpty());
       pool.borrow(5, TimeUnit.SECONDS).get();
     }

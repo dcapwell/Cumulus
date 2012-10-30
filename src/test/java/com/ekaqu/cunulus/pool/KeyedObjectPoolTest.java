@@ -1,38 +1,28 @@
 package com.ekaqu.cunulus.pool;
 
+import com.ekaqu.cunulus.ThreadPools;
 import com.ekaqu.cunulus.pool.mocks.StringObjectFactory;
 import com.ekaqu.cunulus.retry.BackOffPolicy;
 import com.ekaqu.cunulus.retry.FixedBackOffPolicy;
-import com.ekaqu.cunulus.retry.NoBackoffPolicy;
 import com.ekaqu.cunulus.retry.RandomBackOffPolicy;
 import com.ekaqu.cunulus.retry.Retryers;
 import com.ekaqu.cunulus.util.Block;
 import com.ekaqu.cunulus.util.Factory;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.google.common.math.IntMath;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.math.RoundingMode;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.booleanThat;
-import static org.mockito.Matchers.intThat;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,10 +35,10 @@ public class KeyedObjectPoolTest {
       .corePoolSize(1)
       .maxPoolSize(2)
       .withKeyType(String.class)
-        .factory(stringFactory)
-        .keySupplier(stringFactory);
-  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
-  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
+      .factory(stringFactory)
+      .keySupplier(stringFactory);
+//  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
+//  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
   public void createAndGet() {
     KeyedObjectPool<String, String> pool = (KeyedObjectPool<String, String>) poolBuilder.build();
@@ -60,8 +50,8 @@ public class KeyedObjectPoolTest {
     Assert.assertFalse(pool.isEmpty(), "Pool is empty?");
 
     // borrow everything in the pool
-    List<Map.Entry<String,String>> borrowed = Lists.newArrayList();
-    for(int i = 0; i < expectedSize; i++) {
+    List<Map.Entry<String, String>> borrowed = Lists.newArrayList();
+    for (int i = 0; i < expectedSize; i++) {
       // don't return, want to verify this goes empty
       borrowed.add(pool.borrow().get());
     }
@@ -73,7 +63,7 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(borrowed.size(), expectedSize, "Borrowed count not starting sized count");
 
     // add back to the pool
-    for(Map.Entry<String, String> e : borrowed) {
+    for (Map.Entry<String, String> e : borrowed) {
       pool.returnToPool(e);
     }
 
@@ -86,7 +76,7 @@ public class KeyedObjectPoolTest {
     KeyedObjectPool<String, String> pool = (KeyedObjectPool<String, String>) poolBuilder.build();
     Assert.assertFalse(pool.isEmpty());
 
-    for(int i = 0, maxSize = pool.getCorePoolSize(); i < maxSize; i++) {
+    for (int i = 0, maxSize = pool.getCorePoolSize(); i < maxSize; i++) {
       Assert.assertFalse(pool.isEmpty());
       pool.borrow(5, TimeUnit.SECONDS).get();
     }
@@ -100,10 +90,10 @@ public class KeyedObjectPoolTest {
     final int maxSize = pool.getMaxPoolSize();
 
     // borrow everything in the pool
-    List<Map.Entry<String,String>> borrowed = Lists.newArrayList();
-    for(int i = 0; i < maxSize; i++) {
+    List<Map.Entry<String, String>> borrowed = Lists.newArrayList();
+    for (int i = 0; i < maxSize; i++) {
       // don't return, want to verify this goes empty
-      if(i < coreSize) {
+      if (i < coreSize) {
         borrowed.add(pool.borrow().get());
       } else {
         // this is here for debugging only.  Lets the debugger jump to where a new task gets created
@@ -118,12 +108,12 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(borrowed.size(), maxSize, "Borrowed count not starting sized count");
 
     // pool more, all should be absent
-    for(int i = 0; i < maxSize; i++) {
+    for (int i = 0; i < maxSize; i++) {
       Assert.assertFalse(pool.borrow().isPresent(), "Pool returned data");
     }
 
     // return data to pool
-    for(Map.Entry<String, String> e : borrowed) {
+    for (Map.Entry<String, String> e : borrowed) {
       pool.returnToPool(e);
     }
 
@@ -141,9 +131,9 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), 5 * 5, "CorePoolSize not set at startup");
 
     // causes the interactions to be more random in hopes that threads hit at different times
-    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
-    for(int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++) {
       LOGGER.info("Iteration {}", i);
       final Map.Entry<String, String> obj = pool.borrow(50, TimeUnit.SECONDS).get();
 
@@ -176,23 +166,23 @@ public class KeyedObjectPoolTest {
       "This test is used for testing timing and isn't a unit test")
   public void concurrentExpandingPoolWithExecution() throws InterruptedException {
     final int maxPoolSize = 2;
-    final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()
+    final ExecutingPool<Map.Entry<String, String>> pool = new PoolBuilder<String>()
         .maxPoolSize(maxPoolSize)
         .withKeyType(String.class)
-          .factory(stringFactory)
-          .keySupplier(stringFactory)
-          .buildExecutingPool();
+        .factory(stringFactory)
+        .keySupplier(stringFactory)
+        .buildExecutingPool();
 
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), pool.getCorePoolSize(), "CorePoolSize not set at startup");
 
     // causes the interactions to be more random in hopes that threads hit at different times
-    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final BackOffPolicy backOffPolicy = new FixedBackOffPolicy(500, TimeUnit.MILLISECONDS);
     final AtomicInteger callCounter = new AtomicInteger();
 
     final int iterations = 100;
-    for(int i = 0; i < iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
@@ -225,26 +215,26 @@ public class KeyedObjectPoolTest {
 
   public void concurrentExpandingPoolWithRetryExecution() throws InterruptedException {
     final int maxPoolSize = 2;
-    final ExecutingPool<Map.Entry<String,String>> pool = new PoolBuilder<String>()
+    final ExecutingPool<Map.Entry<String, String>> pool = new PoolBuilder<String>()
         .maxPoolSize(maxPoolSize)
         .withKeyType(String.class)
-          .factory(stringFactory)
-          .keySupplier(stringFactory)
-          .buildExecutingPool(
-              // 10 should be enough so everyone gets an object
-              // this will cause the last few executions to be slow since they have longer sleeps
-              Retryers.newExponentialBackoffRetryer(10));
+        .factory(stringFactory)
+        .keySupplier(stringFactory)
+        .buildExecutingPool(
+            // 10 should be enough so everyone gets an object
+            // this will cause the last few executions to be slow since they have longer sleeps
+            Retryers.newExponentialBackoffRetryer(10));
 
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), pool.getCorePoolSize(), "CorePoolSize not set at startup");
 
     // causes the interactions to be more random in hopes that threads hit at different times
-    final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_COUNT, threadFactory);
+    final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
     final AtomicInteger callCounter = new AtomicInteger();
 
     final int iterations = 1000;
-    for(int i = 0; i < iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
@@ -288,8 +278,8 @@ public class KeyedObjectPoolTest {
         .corePoolSize(3)
         .maxPoolSize(6)
         .withKeyType(String.class)
-          .keySupplier(keySupplier)
-          .factory(mockFactory).build();
+        .keySupplier(keySupplier)
+        .factory(mockFactory).build();
 
     Assert.assertEquals(pool.size(), 3 * 3);
 

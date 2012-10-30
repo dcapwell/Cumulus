@@ -1,5 +1,6 @@
 package com.ekaqu.cunulus.retry;
 
+import com.ekaqu.cunulus.ThreadPools;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
@@ -18,8 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DefaultListeningRetryerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultListeningRetryerTest.class.getName());
 
-  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
-  private final ExecutorService service = Executors.newSingleThreadExecutor(threadFactory);
+  private final ExecutorService service = Executors.newSingleThreadExecutor(ThreadPools.DAEMON_FACTORY);
 
   public void runCallable() throws ExecutionException, InterruptedException {
     ListeningRetryer retryer = Retryers.newListeningRetryer(5, service);

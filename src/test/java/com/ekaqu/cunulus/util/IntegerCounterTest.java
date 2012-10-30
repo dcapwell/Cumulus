@@ -1,23 +1,16 @@
 package com.ekaqu.cunulus.util;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.ekaqu.cunulus.ThreadPools;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Test(groups = "Unit")
 public class IntegerCounterTest {
 
-  private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
-      .setDaemon(true)
-      .setNameFormat(IntegerCounterTest.class.getSimpleName())
-      .build();
-  private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
   private static final int EXECUTION_COUNT = 50000;  // 50000 is when you really see larger difference
 
   public void testGet() throws Exception {
@@ -134,9 +127,9 @@ public class IntegerCounterTest {
 
   @Test(groups = "Experiment", description = "Shows that the class isn't thread safe")
   public void concurrentIncrement() throws InterruptedException {
-    ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
+    ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final IntegerCounter counter = new IntegerCounter();
-    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
+    for (int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       executorService.submit(new Runnable() {
         @Override
         public void run() {
@@ -152,9 +145,9 @@ public class IntegerCounterTest {
 
   @Test(groups = "Experiment", description = "Shows that the class isn't thread safe")
   public void concurrentDecrement() throws InterruptedException {
-    ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
+    ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final IntegerCounter counter = new IntegerCounter(500);
-    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
+    for (int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       executorService.submit(new Runnable() {
         @Override
         public void run() {
@@ -170,14 +163,14 @@ public class IntegerCounterTest {
 
   @Test(groups = "Experiment", description = "Shows that the class isn't thread safe")
   public void concurrentEnvironment() throws InterruptedException {
-    ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT, THREAD_FACTORY);
+    ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final IntegerCounter counter = new IntegerCounter();
-    for(int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
+    for (int i = 0; i < EXECUTION_COUNT; i++) { // 50000 is when you really see larger difference
       final int finalI = i;
       executorService.submit(new Runnable() {
         @Override
         public void run() {
-          if(finalI % 2 == 0) {
+          if (finalI % 2 == 0) {
             counter.incrementAndGet();
           } else {
             counter.decrementAndGet();

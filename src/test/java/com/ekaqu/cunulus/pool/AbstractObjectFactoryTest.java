@@ -1,6 +1,5 @@
 package com.ekaqu.cunulus.pool;
 
-import com.google.common.base.Optional;
 import org.mockito.Answers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

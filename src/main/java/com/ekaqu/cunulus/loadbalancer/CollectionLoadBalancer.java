@@ -16,7 +16,11 @@ import java.util.List;
  * uses that same object while load balancing.  Load balancing is done via {@link com.ekaqu.cunulus.loadbalancer.CollectionLoadBalancer#get()}
  * which will filter out results based off a {@link Predicate} and pass the elements along to {@link CollectionLoadBalancer#get(java.util.List)}.
  * <p/>
- * This load balancer also delegates the results to another load balancer
+ * This load balancer also delegates the results to another load balancer.
+ *
+ * The thread safty of this class is fully depenent on the collection passed in.  For the {@link #get()} method,
+ * {@link java.util.Collection#iterator()} is used to iterate over the collection.  So even if the collection
+ * is thread safe, if the iterator is not then this call is not thread safe.
  *
  * @param <E> element type
  */

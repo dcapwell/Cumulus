@@ -5,9 +5,6 @@ import com.ekaqu.cunulus.loadbalancer.RoundRobinLoadBalancer;
 import com.ekaqu.cunulus.pool.AbstractObjectFactory;
 import com.ekaqu.cunulus.pool.ObjectFactory;
 import com.ekaqu.cunulus.util.Factory;
-import com.google.common.base.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;

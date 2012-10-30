@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
@@ -37,6 +36,7 @@ public class PoolExperiment {
 
   public interface Pool<T> {
     T get();
+
     void returnConnection(T connection);
   }
 
@@ -60,6 +60,7 @@ public class PoolExperiment {
 
   public interface BlockingPool<T> {
     Optional<T> borrowConnection(long wait, TimeUnit unit);
+
     void returnConnection(T connection);
 
     boolean isClosed();
@@ -106,14 +107,14 @@ public class PoolExperiment {
     private final BlockingPool<T> pool;
 
     public ConntionCallable(final BlockingPool<T> pool) {
-      Preconditions.checkArgument(! pool.isClosed(), "Pool is closed");
+      Preconditions.checkArgument(!pool.isClosed(), "Pool is closed");
       this.pool = pool;
     }
 
     @Override
     public V call() throws Exception {
       Optional<T> optConnection = pool.borrowConnection(5, TimeUnit.SECONDS);
-      if(optConnection.isPresent()) {
+      if (optConnection.isPresent()) {
         T connection = optConnection.get();
         try {
           return withConnection(connection);
@@ -136,7 +137,8 @@ public class PoolExperiment {
     final BlockingPool<String> pool = mock(BlockingPool.class);
 
     Future<String> result = executorService.submit(new ConntionCallable<String, String>(pool) {
-      @Override String withConnection(final String connection) throws Exception {
+      @Override
+      String withConnection(final String connection) throws Exception {
         return connection;
       }
     });
@@ -154,8 +156,9 @@ public class PoolExperiment {
     Retryer retryer = mock(Retryer.class);
     final BlockingPool<String> pool = mock(BlockingPool.class);
 
-    String result = retryer.callWithRetry(new ConntionCallable<String,String>(pool) {
-      @Override String withConnection(final String connection) throws Exception {
+    String result = retryer.callWithRetry(new ConntionCallable<String, String>(pool) {
+      @Override
+      String withConnection(final String connection) throws Exception {
         return connection;
       }
     });
@@ -163,17 +166,19 @@ public class PoolExperiment {
 
   public interface BlockingPoolWithCallable<T> {
     Optional<T> borrowConnection(long wait, TimeUnit unit);
+
     void returnConnection(T connection);
 
     boolean isClosed();
 
     <V> V execute(Function<T, V> function);
+
     <V> V executeWithRetry(Function<T, V> function, Retryer retryer);
   }
 
   /**
    * This is nice because there is less for you to work with (will replace function to make things clearer).
-   *
+   * <p/>
    * The one issue with this is that the pool is now responsible for execution.  What if I want async execution?
    */
   public void retrableWithConnectionCallback() {
@@ -198,6 +203,7 @@ public class PoolExperiment {
   public interface HealthChecker<T> {
 
     boolean isHealthy(T obj);
+
     void free(T obj);
   }
 
@@ -206,7 +212,7 @@ public class PoolExperiment {
     HealthChecker<String> stringHealthChecker = mock(HealthChecker.class);
 
     String string = "goodString";
-    if(stringHealthChecker.isHealthy(string)) {
+    if (stringHealthChecker.isHealthy(string)) {
       // safe to use
     } else {
       stringHealthChecker.free(string);
@@ -219,7 +225,7 @@ public class PoolExperiment {
 
   /**
    * Making it one method saves typing but just makes it harder to understand.
-   *
+   * <p/>
    * Also it doesn't let me know the state.  Is the pool still good to use?  Should I just free the object
    * or should i kill the pool?
    */
@@ -227,7 +233,7 @@ public class PoolExperiment {
     HeathCheckv2<String> stringHeathCheckv2 = mock(HeathCheckv2.class);
 
     String ref = "badString";
-    if(stringHeathCheckv2.isBadThenFree(ref)) {
+    if (stringHeathCheckv2.isBadThenFree(ref)) {
       // this is confusing, what do we do here?
     }
   }
@@ -235,6 +241,7 @@ public class PoolExperiment {
   public interface ObjectFactory<T> extends Supplier<T> {
 
     boolean validate(T obj);
+
     void cleanup(T obj);
   }
 
@@ -246,7 +253,7 @@ public class PoolExperiment {
     ObjectFactory<String> stringObjectFactory = mock(ObjectFactory.class);
     String ref = stringObjectFactory.get();
 
-    if(! stringObjectFactory.validate(ref)) {
+    if (!stringObjectFactory.validate(ref)) {
       stringObjectFactory.cleanup(ref);
     }
   }
@@ -271,6 +278,7 @@ public class PoolExperiment {
     }
 
     State validate(T obj, Optional<? extends Throwable> error);
+
     void cleanup(T obj);
   }
 
@@ -308,7 +316,7 @@ public class PoolExperiment {
     executingPool.startAndWait();
 
     // then
-    for(int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
       executingPool.execute(new Block<String>() {
         @Override
         public void apply(final String operand) {
@@ -332,7 +340,7 @@ public class PoolExperiment {
     executingPool.startAndWait();
 
     // then
-    for(int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
       executingPool.execute(new Block<String>() {
         @Override
         public void apply(final String operand) {

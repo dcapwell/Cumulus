@@ -1,16 +1,13 @@
 package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.util.Factory;
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Test(groups = "Unit")
 public class PoolBuilderTest {
@@ -40,9 +37,9 @@ public class PoolBuilderTest {
 
     KeyedPool<String, String> pool = new PoolBuilder<String>()
         .withKeyType(String.class)
-          .keySupplier(factory)
-          .factory(factoryFactory)
-          .build();
+        .keySupplier(factory)
+        .factory(factoryFactory)
+        .build();
 
     LOGGER.info("Pool {}", pool);
     Assert.assertEquals(pool.size(), 5);
