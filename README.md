@@ -8,7 +8,7 @@ A retryer can handle retrying code multiple times until a condition has been met
 
 ```java
 Retryer retryer = Retryers.newRetryer(5);
-final AtomicInteger counter = new AtomicInteger();
+final IntegerCounter counter = new IntegerCounter();
 Integer result = retryer.submitWithRetry(new Callable<Integer>() {
   @Override
   public Integer call() throws Exception {
@@ -60,10 +60,10 @@ pool.execute(new Block<String>() {
 There are multiple ways to work with pools but the best one is with an ExecutingPool.  This provides a more functional way of dealing with the resource and handles most edge cases while dealing with pools.
 
 
-### Miscellaneous
+## Miscellaneous
 
 The above is an overview of several of the main things this library provides but is not everything and not everything planned is here yet.
 
-#### Origin of the name
+### Origin of the name
 
 The name Cumulus came from the genus name of a low orbit cloud.  It was refereed to as ["The cloud of choice for 6-yr.-olds"](http://nenes.eas.gatech.edu/Cloud/Clouds.pdf).
