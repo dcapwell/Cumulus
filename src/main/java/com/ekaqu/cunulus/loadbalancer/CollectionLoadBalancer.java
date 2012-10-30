@@ -38,7 +38,7 @@ public class CollectionLoadBalancer<E> extends ForwardingCollection<E> implement
    * @param delegateLoadBalancer used for all load balancer operations
    * @param filterPredicate      used to filter results before load balancing
    */
-  public CollectionLoadBalancer(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer, final Predicate<E> filterPredicate) {
+  private CollectionLoadBalancer(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer, final Predicate<E> filterPredicate) {
     this.filterPredicate = Preconditions.checkNotNull(filterPredicate);
     this.delegateLoadBalancer = Preconditions.checkNotNull(delegateLoadBalancer);
     this.items = Preconditions.checkNotNull(items);
@@ -51,8 +51,19 @@ public class CollectionLoadBalancer<E> extends ForwardingCollection<E> implement
    * @param items                to load balancer
    * @param delegateLoadBalancer used for all load balancer operations
    */
-  public CollectionLoadBalancer(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer) {
-    this(items, delegateLoadBalancer, Predicates.<E>alwaysTrue());
+  public static <E> CollectionLoadBalancer<E> create(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer) {
+    return new CollectionLoadBalancer<E>(items, delegateLoadBalancer, Predicates.<E>alwaysTrue());
+  }
+
+  /**
+   * Creates a new CollectionLoadBalancer that wraps a load balancer around the given collection
+   *
+   * @param items                to load balancer
+   * @param delegateLoadBalancer used for all load balancer operations
+   * @param filterPredicate      used to filter results before load balancing
+   */
+  public static <E> CollectionLoadBalancer<E> create(final Collection<E> items, final LoadBalancer<E> delegateLoadBalancer, final Predicate<E> filterPredicate) {
+    return new CollectionLoadBalancer<E>(items, delegateLoadBalancer, filterPredicate);
   }
 
   @Override

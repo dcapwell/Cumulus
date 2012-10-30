@@ -15,7 +15,7 @@ public class MinLoadBalancerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(MinLoadBalancerTest.class.getName());
 
   public void emptyList() {
-    LoadBalancer<String> lb = new MinLoadBalancer<String>(Ordering.<String>natural());
+    LoadBalancer<String> lb = MinLoadBalancer.create(Ordering.<String>natural());
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(Collections.<String>emptyList());
       Assert.assertNull(result, "Result should be null");
@@ -23,7 +23,7 @@ public class MinLoadBalancerTest {
   }
 
   public void singleElementList() {
-    LoadBalancer<String> lb = new MinLoadBalancer<String>(Ordering.<String>natural());
+    LoadBalancer<String> lb = MinLoadBalancer.create(Ordering.<String>natural());
     final List<String> objects = Arrays.<String>asList("HI");
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(objects);
@@ -32,7 +32,7 @@ public class MinLoadBalancerTest {
   }
 
   public void multiElementList() {
-    LoadBalancer<Integer> lb = new MinLoadBalancer<Integer>(Ordering.<Integer>natural());
+    LoadBalancer<Integer> lb = MinLoadBalancer.create(Ordering.<Integer>natural());
     final List<Integer> objects = Arrays.<Integer>asList(12, 24, 82, 12, 51, 298, 2, 6982);
     final Integer smallest = lb.get(objects);
     Assert.assertEquals(smallest, Integer.valueOf(2), "Not smallest value");
@@ -40,6 +40,6 @@ public class MinLoadBalancerTest {
 
   @Test(expectedExceptions = NullPointerException.class)
   public void emptyComparable() {
-    LoadBalancer<String> lb = new MinLoadBalancer<String>(null);
+    LoadBalancer<String> lb = MinLoadBalancer.create(null);
   }
 }

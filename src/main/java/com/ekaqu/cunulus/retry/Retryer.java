@@ -5,6 +5,8 @@ import java.util.concurrent.Callable;
 /**
  * Defines a way to retry tasks
  */
+//TODO Should this include a Context as input which will let users request retries? Look at how ExecutingPool gets by without this, kinda hacky.
+//TODO maybe use a predicate to validate output?  If predicate.apply(output) == false, retry?  Already using this for exceptions
 public interface Retryer {
 
   /**

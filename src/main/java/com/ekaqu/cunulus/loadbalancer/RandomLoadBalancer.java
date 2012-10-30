@@ -16,6 +16,15 @@ public class RandomLoadBalancer<E> implements LoadBalancer<E> {
 
   private final Random random = new Random(0l);
 
+  private RandomLoadBalancer() {}
+
+  /**
+   * Creates a new Random based load balancer
+   */
+  public static <E> RandomLoadBalancer<E> create() {
+    return new RandomLoadBalancer<E>();
+  }
+
   /**
    * Randomly selects an element in the list.
    * <p/>

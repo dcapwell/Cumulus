@@ -20,7 +20,7 @@ public class RoundRobinLoadBalancerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RoundRobinLoadBalancerTest.class.getName());
 
   public void emptyList() {
-    LoadBalancer<Object> lb = new RoundRobinLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RoundRobinLoadBalancer.create();
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(Collections.emptyList());
       Assert.assertNull(result, "Result should be null");
@@ -28,7 +28,7 @@ public class RoundRobinLoadBalancerTest {
   }
 
   public void singleElementList() {
-    LoadBalancer<Object> lb = new RoundRobinLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RoundRobinLoadBalancer.create();
     final List<Object> objects = Arrays.<Object>asList("HI");
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(objects);
@@ -37,7 +37,7 @@ public class RoundRobinLoadBalancerTest {
   }
 
   public void multiElementList() {
-    LoadBalancer<Object> lb = new RoundRobinLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RoundRobinLoadBalancer.create();
     final List<Object> objects = Arrays.<Object>asList("A", "B", "C", "D");
 
     final Object first = lb.get(objects);

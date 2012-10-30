@@ -22,8 +22,17 @@ public class MaxLoadBalancer<E> extends ComparableLoadBalancer<E> {
    *
    * @param comparator used to define largest
    */
-  public MaxLoadBalancer(final Comparator<E> comparator) {
+  private MaxLoadBalancer(final Comparator<E> comparator) {
     super(comparator);
+  }
+
+  /**
+   * Creates a new MaxLoadBalancer that will return the largest element.
+   *
+   * @param comparator used to define largest
+   */
+  public static <E> MaxLoadBalancer<E> create(final Comparator<E> comparator) {
+    return new MaxLoadBalancer<E>(comparator);
   }
 
   @Override

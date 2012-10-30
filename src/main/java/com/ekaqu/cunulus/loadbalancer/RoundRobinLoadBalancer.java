@@ -18,13 +18,20 @@ public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
 
   private final AtomicInteger index;
 
-  public RoundRobinLoadBalancer() {
+  private RoundRobinLoadBalancer() {
     index = new AtomicInteger(0);
   }
 
   @VisibleForTesting
   RoundRobinLoadBalancer(final int startingSize) {
     index = new AtomicInteger(startingSize);
+  }
+
+  /**
+   * Creates a new Round Robin based load balancer
+   */
+  public static <T> RoundRobinLoadBalancer<T> create() {
+    return new RoundRobinLoadBalancer<T>();
   }
 
   /**

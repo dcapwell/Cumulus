@@ -1,6 +1,7 @@
 package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.loadbalancer.CollectionLoadBalancer;
+import com.ekaqu.cunulus.loadbalancer.LoadBalancers;
 import com.ekaqu.cunulus.loadbalancer.RoundRobinLoadBalancer;
 import com.ekaqu.cunulus.util.Factory;
 import com.google.common.annotations.Beta;
@@ -57,7 +58,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   //TODO should poolMap and/ore loadBalancer be configurable?
   private final Map<K, Pool<V>> poolMap = Maps.newConcurrentMap();
   private final CollectionLoadBalancer<Map.Entry<K, Pool<V>>> loadBalancer =
-      new CollectionLoadBalancer(poolMap.entrySet(), new RoundRobinLoadBalancer(), poolSizePredicate);
+      CollectionLoadBalancer.create(poolMap.entrySet(), LoadBalancers.<Map.Entry<K, Pool<V>>>defaultLoadBalancer(), poolSizePredicate);
 
   /**
    * When the pool is empty, used to wait for expansion or returned data.

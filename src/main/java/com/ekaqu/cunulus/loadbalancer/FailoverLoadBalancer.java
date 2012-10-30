@@ -26,8 +26,18 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
    *
    * @param delegate loadBalancer to fetch new results
    */
-  public FailoverLoadBalancer(final LoadBalancer<E> delegate) {
+  private FailoverLoadBalancer(final LoadBalancer<E> delegate) {
     this.delegate = Preconditions.checkNotNull(delegate);
+  }
+
+  /**
+   * Creates a new FailoverLoadBalancer that will return the same element over and over until a given condition is met,
+   * at which point it will use the delegate loadBalancer to get a new result.
+   *
+   * @param delegate loadBalancer to fetch new results
+   */
+  public static <E> FailoverLoadBalancer<E> create(final LoadBalancer<E> delegate) {
+    return new FailoverLoadBalancer<E>(delegate);
   }
 
   /**

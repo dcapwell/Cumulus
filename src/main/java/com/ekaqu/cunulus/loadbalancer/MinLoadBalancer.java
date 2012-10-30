@@ -22,8 +22,17 @@ public class MinLoadBalancer<E> extends ComparableLoadBalancer<E> {
    *
    * @param comparator used to define smallest
    */
-  public MinLoadBalancer(final Comparator<E> comparator) {
+  private MinLoadBalancer(final Comparator<E> comparator) {
     super(comparator);
+  }
+
+  /**
+   * Creates a new MinLoadBalancer that will return the smallest element.
+   *
+   * @param comparator used to define smallest
+   */
+  public static <E> MinLoadBalancer<E> create(final Comparator<E> comparator) {
+    return new MinLoadBalancer<E>(comparator);
   }
 
   @Override

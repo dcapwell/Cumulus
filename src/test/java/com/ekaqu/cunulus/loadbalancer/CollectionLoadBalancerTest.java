@@ -21,12 +21,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CollectionLoadBalancerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(CollectionLoadBalancerTest.class.getName());
 
-  private final LoadBalancer<Integer> DELEGATE_BALANCER = new MinLoadBalancer<Integer>(Ordering.<Integer>natural());
+  private final LoadBalancer<Integer> DELEGATE_BALANCER = MinLoadBalancer.create(Ordering.<Integer>natural());
 
   private final int MAX_ITERATIONS_THREADED = 100000;
 
   public void emptyList() {
-    CollectionLoadBalancer<Integer> lb = new CollectionLoadBalancer<Integer>(ImmutableList.<Integer>of(), DELEGATE_BALANCER);
+    CollectionLoadBalancer<Integer> lb = CollectionLoadBalancer.create(ImmutableList.<Integer>of(), DELEGATE_BALANCER);
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get();
       Assert.assertNull(result, "Result should be null");
@@ -34,7 +34,7 @@ public class CollectionLoadBalancerTest {
   }
 
   public void singleElementList() {
-    CollectionLoadBalancer<Integer> lb = new CollectionLoadBalancer<Integer>(Arrays.asList(2), DELEGATE_BALANCER);
+    CollectionLoadBalancer<Integer> lb = CollectionLoadBalancer.create(Arrays.asList(2), DELEGATE_BALANCER);
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get();
       Assert.assertEquals(result, Integer.valueOf(2));
@@ -42,7 +42,7 @@ public class CollectionLoadBalancerTest {
   }
 
   public void multiElementList() {
-    CollectionLoadBalancer<Integer> lb = new CollectionLoadBalancer<Integer>(Arrays.<Integer>asList(12, 24, 82, 12, 51, 298, 2, 6982), DELEGATE_BALANCER);
+    CollectionLoadBalancer<Integer> lb = CollectionLoadBalancer.create(Arrays.<Integer>asList(12, 24, 82, 12, 51, 298, 2, 6982), DELEGATE_BALANCER);
     final Integer smallest = lb.get();
     Assert.assertEquals(smallest, Integer.valueOf(2), "Not smallest value");
   }
@@ -51,7 +51,8 @@ public class CollectionLoadBalancerTest {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newConcurrentMap();
     ExecutorService executorService = ThreadPools.getMaxSizePool(this);
-    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer = new CollectionLoadBalancer<Map.Entry<Long, Long>>(map.entrySet(), new RoundRobinLoadBalancer<Map.Entry<Long, Long>>());
+    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer =
+        CollectionLoadBalancer.create(map.entrySet(), LoadBalancers.<Map.Entry<Long, Long>>defaultLoadBalancer());
 
     final int iterations = MAX_ITERATIONS_THREADED;
     final AtomicReference<Throwable> lastThrowable = new AtomicReference<Throwable>();
@@ -86,7 +87,8 @@ public class CollectionLoadBalancerTest {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newConcurrentMap();
     ExecutorService executorService = ThreadPools.getMaxSizePool(this);
-    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer = new CollectionLoadBalancer<Map.Entry<Long, Long>>(map.entrySet(), new RoundRobinLoadBalancer<Map.Entry<Long, Long>>());
+    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer =
+        CollectionLoadBalancer.create(map.entrySet(), LoadBalancers.<Map.Entry<Long, Long>>defaultLoadBalancer());
 
     final int iterations = MAX_ITERATIONS_THREADED;
     final AtomicReference<Throwable> lastThrowable = new AtomicReference<Throwable>();
@@ -123,7 +125,8 @@ public class CollectionLoadBalancerTest {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newHashMap();
     ExecutorService executorService = ThreadPools.getMaxSizePool(this);
-    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer = new CollectionLoadBalancer<Map.Entry<Long, Long>>(map.entrySet(), new RoundRobinLoadBalancer<Map.Entry<Long, Long>>());
+    final CollectionLoadBalancer<Map.Entry<Long, Long>> loadBalancer =
+        CollectionLoadBalancer.create(map.entrySet(), LoadBalancers.<Map.Entry<Long, Long>>defaultLoadBalancer());
 
     final int iterations = MAX_ITERATIONS_THREADED;
     final AtomicReference<Throwable> lastThrowable = new AtomicReference<Throwable>();

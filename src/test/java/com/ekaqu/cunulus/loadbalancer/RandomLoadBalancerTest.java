@@ -20,7 +20,7 @@ public class RandomLoadBalancerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RandomLoadBalancerTest.class.getName());
 
   public void emptyList() {
-    LoadBalancer<Object> lb = new RandomLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RandomLoadBalancer.create();
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(Collections.emptyList());
       Assert.assertNull(result, "Result should be null");
@@ -28,7 +28,7 @@ public class RandomLoadBalancerTest {
   }
 
   public void singleElementList() {
-    LoadBalancer<Object> lb = new RandomLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RandomLoadBalancer.create();
     final List<Object> objects = Arrays.<Object>asList("HI");
     for(int i = 0; i < 10; i++) {
       final Object result = lb.get(objects);
@@ -40,7 +40,7 @@ public class RandomLoadBalancerTest {
    * Since Random has a fixed seed, this verifies that the seed is the same between releases.
    */
   public void multiElementList() {
-    LoadBalancer<Object> lb = new RandomLoadBalancer<Object>();
+    LoadBalancer<Object> lb = RandomLoadBalancer.create();
     final List<Object> objects = Arrays.<Object>asList("A", "B", "C", "D");
 
     final Object first = lb.get(objects);
@@ -64,7 +64,7 @@ public class RandomLoadBalancerTest {
 
   public void distrabution() {
     final List<String> objects = Arrays.asList("A", "B", "C", "D");
-    LoadBalancer<String> lb = new RandomLoadBalancer<String>();
+    LoadBalancer<String> lb = RandomLoadBalancer.create();
     Multimap<String, String> distrabution = ArrayListMultimap.create();
     final int iterations = 1000;
     for(int i = 0; i < iterations; i++) {
