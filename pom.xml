@@ -13,6 +13,7 @@
   <properties>
     <distro.release.url></distro.release.url>
     <distro.snapshot.url></distro.snapshot.url>
+    <deploy.skip>true</deploy.skip>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -141,6 +142,14 @@
           <source>1.6</source>
           <target>1.6</target>
           <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <skip>${deploy.skip}</skip>
         </configuration>
       </plugin>
     </plugins>
