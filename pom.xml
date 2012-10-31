@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.ekaqu.cumulus</groupId>
   <artifactId>cumulus</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <description>Cumulus is a common collection of useful classes for developing server applications.</description>
 
   <properties>
-    <distro.release.url></distro.release.url>
-    <distro.snapshot.url></distro.snapshot.url>
+    <distro.release.url />
+    <distro.snapshot.url />
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -21,6 +19,7 @@
     <connection>scm:git:git@github.com:dcapwell/Cumulus.git</connection>
     <url>git@github.com:dcapwell/Cumulus.git</url>
     <developerConnection>scm:git:git@github.com:dcapwell/Cumulus.git</developerConnection>
+    <tag>cumulus-0.0.1</tag>
   </scm>
 
   <issueManagement>
