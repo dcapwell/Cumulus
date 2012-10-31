@@ -40,6 +40,8 @@ public class KeyedObjectPoolTest {
 //  private final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
 //  private static final int MAX_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
+  private static final int MAX_ITERATIONS = 1000;
+
   public void createAndGet() {
     KeyedObjectPool<String, String> pool = (KeyedObjectPool<String, String>) poolBuilder.build();
 
@@ -120,6 +122,7 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "Pool should be at max size right now");
   }
 
+  @Test(groups = "Slow")
   public void concurrentExpandingPool() {
     final KeyedPool<String, String> pool = new PoolBuilder<String>()
         .withKeyType(String.class)
@@ -133,7 +136,7 @@ public class KeyedObjectPoolTest {
     // causes the interactions to be more random in hopes that threads hit at different times
     final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < MAX_ITERATIONS; i++) {
       LOGGER.info("Iteration {}", i);
       final Map.Entry<String, String> obj = pool.borrow(50, TimeUnit.SECONDS).get();
 
@@ -162,7 +165,7 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
   }
 
-  @Test(groups = "Experiment", description = "A pool without retries isn't guarantied to give a object back.  " +
+  @Test(groups = {"Experiment", "Slow"}, description = "A pool without retries isn't guarantied to give a object back.  " +
       "This test is used for testing timing and isn't a unit test")
   public void concurrentExpandingPoolWithExecution() throws InterruptedException {
     final int maxPoolSize = 2;
@@ -181,7 +184,7 @@ public class KeyedObjectPoolTest {
     final BackOffPolicy backOffPolicy = new FixedBackOffPolicy(500, TimeUnit.MILLISECONDS);
     final AtomicInteger callCounter = new AtomicInteger();
 
-    final int iterations = 100;
+    final int iterations = MAX_ITERATIONS;
     for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
@@ -213,6 +216,7 @@ public class KeyedObjectPoolTest {
     Assert.assertEquals(pool.size(), pool.getMaxPoolSize(), "MaxPoolSize not expanded to");
   }
 
+  @Test(groups = "Slow")
   public void concurrentExpandingPoolWithRetryExecution() throws InterruptedException {
     final int maxPoolSize = 2;
     final ExecutingPool<Map.Entry<String, String>> pool = new PoolBuilder<String>()
@@ -233,7 +237,7 @@ public class KeyedObjectPoolTest {
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
     final AtomicInteger callCounter = new AtomicInteger();
 
-    final int iterations = 1000;
+    final int iterations = MAX_ITERATIONS;
     for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {

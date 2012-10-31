@@ -47,6 +47,7 @@ public class CollectionLoadBalancerTest {
     Assert.assertEquals(smallest, Integer.valueOf(2), "Not smallest value");
   }
 
+  @Test(groups = "Slow")
   public void concurrentModifyAdd() throws InterruptedException {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newConcurrentMap();
@@ -83,6 +84,7 @@ public class CollectionLoadBalancerTest {
     Assert.assertNull(lastThrowable.get(), "Exception was thrown");
   }
 
+  @Test(groups = "Slow")
   public void concurrentModifyAddAndDelete() throws InterruptedException {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newConcurrentMap();
@@ -120,7 +122,7 @@ public class CollectionLoadBalancerTest {
     Assert.assertNull(lastThrowable.get(), "Exception was thrown");
   }
 
-  @Test(groups = "Experiment")
+  @Test(groups = {"Experiment", "Slow"})
   public void concurrentModifyAddUnsafeCollection() throws InterruptedException {
 //    final Set<Long> set = new ConcurrentSkipListSet<Long>();
     final Map<Long, Long> map = Maps.newHashMap();

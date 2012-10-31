@@ -107,7 +107,7 @@
           <groups>Unit</groups>
           <parallel>classes</parallel>
           <threadCount>2</threadCount>
-          <excludedGroups>Experiment</excludedGroups>
+          <excludedGroups>Experiment,Slow</excludedGroups>
           <failIfNoTests>true</failIfNoTests>
           <enableAssertions>true</enableAssertions>
         </configuration>

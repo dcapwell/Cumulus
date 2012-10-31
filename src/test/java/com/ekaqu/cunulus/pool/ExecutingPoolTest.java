@@ -32,6 +32,8 @@ public class ExecutingPoolTest {
 
   private final StringObjectFactory stringFactory = new StringObjectFactory();
 
+  private static final int MAX_ITERATIONS = 1000;
+
   @BeforeClass(alwaysRun = true)
   public void before() {
     ObjectFactory<String> factory = mock(AbstractObjectFactory.class, CALLS_REAL_METHODS);
@@ -187,7 +189,7 @@ public class ExecutingPoolTest {
     Assert.fail("Unreachable");
   }
 
-  @Test(groups = "Experiment", description = "A pool without retries doesn't have a guaranty that a object is returned.  " +
+  @Test(groups = {"Experiment", "Slow"}, description = "A pool without retries doesn't have a guaranty that a object is returned.  " +
       "This test is mostly to test timing and not a unit test")
   public void concurrentBlockExecute() throws InterruptedException {
     final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
@@ -198,7 +200,7 @@ public class ExecutingPoolTest {
 
     final AtomicInteger counter = new AtomicInteger();
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
-    final int iterations = 1000;
+    final int iterations = MAX_ITERATIONS;
     for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
@@ -224,6 +226,7 @@ public class ExecutingPoolTest {
     Assert.assertEquals(counter.get(), iterations);
   }
 
+  @Test(groups = "Slow")
   public void concurrentBlockRetryExecute() throws InterruptedException {
     final ExecutorService executorService = ThreadPools.getMaxSizePool(this);
 
@@ -237,7 +240,7 @@ public class ExecutingPoolTest {
     final AtomicInteger counter = new AtomicInteger();
     final BackOffPolicy backOffPolicy = new RandomBackOffPolicy(500);
 //    final BackOffPolicy backOffPolicy = new NoBackoffPolicy();
-    final int iterations = 1000;
+    final int iterations = MAX_ITERATIONS;
     for (int i = 0; i < iterations; i++) {
       final int finalI = i;
       executorService.submit(new Runnable() {
