@@ -11,6 +11,9 @@
   <description>Cumulus is a common collection of useful classes for developing server applications.</description>
 
   <properties>
+    <distro.release.url></distro.release.url>
+    <distro.snapshot.url></distro.snapshot.url>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -24,6 +27,19 @@
     <system>github.com</system>
     <url>https://github.com/dcapwell/Cumulus/issues</url>
   </issueManagement>
+
+  <distributionManagement>
+    <repository>
+      <id>central</id>
+      <name>libs-release-local</name>
+      <url>${distro.release.url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>libs-snapshot-local</name>
+      <url>${distro.snapshot.url}</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <dependencies>
     <dependency>
