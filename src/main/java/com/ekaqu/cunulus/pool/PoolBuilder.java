@@ -72,26 +72,45 @@ import java.util.concurrent.ThreadFactory;
  *
  * @param <T> type of the pool to build
  */
-public class PoolBuilder<T> {
-  private static final ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).build();
+public final class PoolBuilder<T> {
 
   /**
-   * Default max size a pool can expand to
+   * Creates daemon threads.
+   */
+  private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder().setDaemon(true).build();
+
+  /**
+   * Default max size a pool can expand to.
    */
   private static final int DEFAULT_MAX_POOL_SIZE = 10;
 
   /**
-   * Default core size a pool should try to stay around
+   * Default core size a pool should try to stay around.
    */
   private static final int DEFAULT_CORE_POOL_SIZE = DEFAULT_MAX_POOL_SIZE / 2;
 
+  /**
+   * Executor service for running background tasks.
+   */
   private ExecutorService executorService;
+
+  /**
+   * The min size of the pool.
+   */
   private int corePoolSize;
+
+  /**
+   * The max size the pool can grow to.
+   */
   private int maxPoolSize;
+
+  /**
+   * Creates values for the pool.
+   */
   private ObjectFactory<T> objectFactory;
 
   /**
-   * Core size the pool should try to stay at
+   * Core size the pool should try to stay at.
    *
    * @param corePoolSize size the pool should be around
    * @return this builder
@@ -103,7 +122,7 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Max size the pool should reach
+   * Max size the pool should reach.
    *
    * @param maxPoolSize size the pool can reach.  Pool can not go over this value
    * @return this builder
@@ -115,7 +134,7 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Factory for creating values in a pool
+   * Factory for creating values in a pool.
    *
    * @param factory how pool should manage values
    * @return this builder
@@ -138,14 +157,18 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Get the executorService for this pool
+   * Get the executorService for this pool.
+   *
+   * @return executor service used by the pool builder, or a new single threaded one
    */
   private ExecutorService getExecutorService() {
-    return (executorService == null) ? executorService = Executors.newSingleThreadExecutor(threadFactory) : this.executorService;
+    return (executorService == null)
+        ? executorService = Executors.newSingleThreadExecutor(THREAD_FACTORY)
+        : this.executorService;
   }
 
   /**
-   * Build a new Pool
+   * Build a new Pool.
    *
    * @return newly created pool
    */
@@ -169,7 +192,7 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Build a new ExecutingPool
+   * Build a new ExecutingPool.
    *
    * @return newly created pool
    */
@@ -178,7 +201,7 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Build a new ExecutingPool
+   * Build a new ExecutingPool.
    *
    * @param retryer used for retrying {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)}
    * @return newly created pool
@@ -188,13 +211,13 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Builder for KeyedPools
+   * Builder for KeyedPools.
    *
    * @param clazz key class type
    * @param <K>   key type
    * @return new KeyedPoolBuilder
    */
-  public <K> KeyedPoolBuilder<K, T> withKeyType(Class<K> clazz) {
+  public <K> KeyedPoolBuilder<K, T> withKeyType(final Class<K> clazz) {
     return new KeyedPoolBuilder<K, T>();
   }
 
@@ -204,18 +227,36 @@ public class PoolBuilder<T> {
    * @param <K> key type for pool
    * @param <V> value type of pool.  This should be provided by {@link PoolBuilder}
    */
-  public class KeyedPoolBuilder<K, V> {
+  public final class KeyedPoolBuilder<K, V> {
 
+    /**
+     * Creates keys for the pool.
+     */
     private Supplier<K> keySupplier;
+
+    /**
+     * Creates new ObjectFactorys given the key from {@link #keySupplier}.
+     */
     private Factory<K, ObjectFactory<V>> factory;
+
+    /**
+     * Min size of the underline pools.
+     */
     private int coreSizePerKey;
+
+    /**
+     * Max size of the underline pools.
+     */
     private int maxSizePerKey;
 
+    /**
+     * Hides constructor from clients.
+     */
     private KeyedPoolBuilder() {
     }
 
     /**
-     * Supplier for generating keys for the pool
+     * Supplier for generating keys for the pool.
      *
      * @param keySupplier for generating keys
      * @return this builder
@@ -226,7 +267,7 @@ public class PoolBuilder<T> {
     }
 
     /**
-     * Factory for creating ObjectFactorys needed for building a new Pool for a given Key
+     * Factory for creating ObjectFactorys needed for building a new Pool for a given Key.
      *
      * @param factory for creating ObjectFactoriys
      * @return this builder
@@ -261,7 +302,7 @@ public class PoolBuilder<T> {
     }
 
     /**
-     * Build a new KeyedPool
+     * Build a new KeyedPool.
      *
      * @return newly created KeyedPool
      */
@@ -297,7 +338,7 @@ public class PoolBuilder<T> {
     }
 
     /**
-     * Build a new ExecutingPool backed by a KeyedPool
+     * Build a new ExecutingPool backed by a KeyedPool.
      *
      * @return newly created executingPool
      */
@@ -306,7 +347,7 @@ public class PoolBuilder<T> {
     }
 
     /**
-     * Build a new ExecutingPool backed by a KeyedPool with retires\ for {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)}
+     * Build a new ExecutingPool backed by a KeyedPool with retires\ for {@link ExecutingPool#execute(com.ekaqu.cunulus.util.Block)}.
      *
      * @param retryer for retry logic in execute
      * @return newly created executingPool
@@ -317,7 +358,7 @@ public class PoolBuilder<T> {
   }
 
   /**
-   * Start a pool and verify its in a good state
+   * Start a pool and verify its in a good state.
    *
    * @param pool newly created pool to start
    */

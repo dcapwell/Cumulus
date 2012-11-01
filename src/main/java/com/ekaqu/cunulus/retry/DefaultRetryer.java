@@ -25,9 +25,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 @ThreadSafe
-class DefaultRetryer implements Retryer {
+final class DefaultRetryer implements Retryer {
+
+  /**
+   * Max number of retries.
+   */
   private final int maxRetries;
+
+  /**
+   * How to backoff between retries.
+   */
   private final BackOffPolicy policy;
+
+  /**
+   * Determines if an exception causes the retry to exit early.
+   */
   private final Predicate<Exception> exceptionPredicate;
 
   /**
@@ -81,7 +93,7 @@ class DefaultRetryer implements Retryer {
   }
 
   @Override
-  public <T> T newProxy(final T target, Class<T> interfaceType) {
+  public <T> T newProxy(final T target, final Class<T> interfaceType) {
     checkNotNull(target, "target");
     checkNotNull(interfaceType, "interfaceType");
     InvocationHandler handler = new InvocationHandler() {
@@ -108,6 +120,10 @@ class DefaultRetryer implements Retryer {
   /**
    * Retries executing a callable object.  Retries are done using recursion.
    *
+   * @param retryableTask task to retry
+   * @param retryCount how many retries are allowed
+   * @param <T> return type of task
+   * @return value from task
    * @throws Exception thrown by the last call to retryableTask
    */
   private <T> T submitWithRetry(final Callable<T> retryableTask, final int retryCount) throws Exception {

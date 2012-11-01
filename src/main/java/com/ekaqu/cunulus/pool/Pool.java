@@ -55,6 +55,8 @@ public interface Pool<T> extends Service, Sized {
    * is allowed to block for.  If the time has exceeded or the pool is empty then the returned value will be {@link
    * com.google.common.base.Optional#absent()}.
    *
+   * @param timeout how long to wait for a new object if pool is empty
+   * @param unit timeout unit
    * @throws ClosedPoolException pool is closed
    */
   Optional<T> borrow(long timeout, TimeUnit unit);
@@ -63,6 +65,7 @@ public interface Pool<T> extends Service, Sized {
    * Returns an object to the pool.  This method might not effect {@link com.ekaqu.cunulus.pool.Pool#size()} since a
    * pool may reject the object presented.
    *
+   * @param obj to return to pool
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj);
@@ -71,18 +74,23 @@ public interface Pool<T> extends Service, Sized {
    * Returns an object to the pool with the last exception thrown. This method might not effect {@link
    * com.ekaqu.cunulus.pool.Pool#size()} since a pool may reject the object presented.
    *
+   * @param obj to return to pool
    * @param throwable thrown when last used the object
    * @throws ClosedPoolException pool is closed
    */
   void returnToPool(T obj, Throwable throwable);
 
   /**
-   * The number of elements that this pool wishes to be around
+   * The number of elements that this pool wishes to be around.
+   *
+   * @return min size of the pool
    */
   int getCorePoolSize();
 
   /**
-   * The max number of elements this pool can hold
+   * The max number of elements this pool can hold.
+   *
+   * @return max size of the pool
    */
   int getMaxPoolSize();
 
@@ -91,6 +99,8 @@ public interface Pool<T> extends Service, Sized {
    * <p/>
    * This is different from size because size describes how many elements are currently in the pool.  Active, on the
    * other hand, describes how many elements are alive but not necessarily in the pool at this moment.
+   *
+   * @return how many elements belong to the pool
    */
   int getActivePoolSize();
 }

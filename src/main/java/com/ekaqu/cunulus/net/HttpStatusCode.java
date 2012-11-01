@@ -469,10 +469,28 @@ public enum HttpStatusCode {
    */
   HTTP_Version_Not_Supported(505, Type.Server_Error, "HTTP Version Not Supported");
 
+  /**
+   * Numeric status code from http request.
+   */
   private final int statusCode;
+
+  /**
+   * A bucketed range of status codes.
+   */
   private final Type type;
+
+  /**
+   * String reason what happened.
+   */
   private final String reason;
 
+  /**
+   * Creates a new status code.
+   *
+   * @param statusCode numeric code
+   * @param type bucketed range
+   * @param reason reason
+   */
   private HttpStatusCode(final int statusCode, final Type type, final String reason) {
     this.statusCode = statusCode;
     this.type = type;
@@ -480,23 +498,31 @@ public enum HttpStatusCode {
   }
 
   /**
-   * Http Status Code\
+   * Http Status Code.
+   *
+   * @return numeric status code
    */
   public int getStatusCode() {
     return statusCode;
   }
 
   /**
-   * Sub-classification of the status code
+   * Sub-classification of the status code.
+   *
+   * @return bucketed type
    */
   public Type getType() {
     return type;
   }
 
   /**
-   * Converts a numeric http status code into a StatusCode enum value
+   * Converts a numeric http status code into a StatusCode enum value.
+   *
+   * @param statusCode numeric status code
+   * @return Status Code object for the given numeric code
    */
   public static HttpStatusCode valueOf(final int statusCode) {
+    // checkstyle complains about magic numbers but this is faster than iterating over each.
     switch (statusCode) {
       // Informational
       case 100:

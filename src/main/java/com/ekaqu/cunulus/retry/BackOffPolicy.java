@@ -1,7 +1,7 @@
 package com.ekaqu.cunulus.retry;
 
 /**
- * Defines how to backoff while doing retries
+ * Defines how to backoff while doing retries.
  */
 public interface BackOffPolicy {
 

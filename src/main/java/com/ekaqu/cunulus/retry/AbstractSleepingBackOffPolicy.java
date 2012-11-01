@@ -9,7 +9,7 @@ import com.google.common.annotations.Beta;
 public abstract class AbstractSleepingBackOffPolicy implements BackOffPolicy {
 
   @Override
-  public void backoff(final int attemptCount) {
+  public final void backoff(final int attemptCount) {
     try {
       final long sleepTime = sleepTime(attemptCount);
       Thread.sleep(sleepTime);

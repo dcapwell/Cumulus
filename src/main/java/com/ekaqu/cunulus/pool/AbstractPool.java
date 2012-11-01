@@ -10,24 +10,35 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Base for building a new pool
+ * Base for building a new pool.
  *
  * @param <T> type of the pool
  */
 @Beta
 public abstract class AbstractPool<T> extends AbstractService implements Pool<T> {
 
+  /**
+   * Counts how many active elements are in the pool.  Active is defined as created.
+   */
   private final AtomicInteger active = new AtomicInteger();
 
+  /**
+   * Min size of the pool.
+   */
   private int corePoolSize = 0;
+
+  /**
+   * Max size of the pool.
+   */
   private int maxPoolSize = 0;
 
   @Override
-  protected void doStart() {
+  protected final void doStart() {
     Preconditions.checkState(State.STARTING.equals(state()), "Not in the starting state: " + state());
 
     try {
       while (getActivePoolSize() < getCorePoolSize() && expand()) {
+        // do nothing
       }
       notifyStarted();
     } catch (Exception e) {
@@ -36,7 +47,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   @Override
-  protected void doStop() {
+  protected final void doStop() {
     Preconditions.checkState(State.STOPPING.equals(state()), "Not in the stopping state: " + state());
 
     try {
@@ -50,24 +61,26 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Same as {@link Pool#borrow(long, java.util.concurrent.TimeUnit)} with 0 and {@link TimeUnit#MILLISECONDS}
+   * Same as {@link Pool#borrow(long, java.util.concurrent.TimeUnit)} with 0 and {@link TimeUnit#MILLISECONDS}.
    *
    * @see Pool#borrow(long, java.util.concurrent.TimeUnit)
+   * @return optional element in the pool
    */
   @Override
-  public Optional<T> borrow() {
+  public final Optional<T> borrow() {
     checkNotClosed();
 
     return borrow(0, TimeUnit.MILLISECONDS);
   }
 
   /**
-   * Same as {@link Pool#returnToPool(Object, Throwable)} with {@link Throwable} = null
+   * Same as {@link Pool#returnToPool(Object, Throwable)} with {@link Throwable} = null.
    *
    * @see Pool#returnToPool(Object, Throwable)
+   * @param obj to add to the pool
    */
   @Override
-  public void returnToPool(final T obj) {
+  public final void returnToPool(final T obj) {
     Preconditions.checkNotNull(obj);
 
     checkNotClosed();
@@ -76,7 +89,9 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Uses the size method to determine if empty or not
+   * Uses the size method to determine if empty or not.
+   *
+   * @return if pool is empty
    */
   @Override
   public boolean isEmpty() {
@@ -93,7 +108,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    *
    * @return ToStringHelper to use when overriding toString
    */
-  protected Objects.ToStringHelper toStringBuilder() {
+  protected final Objects.ToStringHelper toStringBuilder() {
     return Objects.toStringHelper(getClass())
         .add("state", state())
         .add("active", getActivePoolSize())
@@ -125,7 +140,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    * @param corePoolSize min size of the pool
    * @param maxPoolSize  max size of the pool
    */
-  protected void setPoolSizes(final int corePoolSize, final int maxPoolSize) {
+  protected final void setPoolSizes(final int corePoolSize, final int maxPoolSize) {
     Preconditions.checkArgument(
         corePoolSize >= 0
             && maxPoolSize > 0
@@ -137,26 +152,28 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Attempts to expand the pool by one
+   * Attempts to expand the pool by one.
    *
    * @return if pool was expanded
    */
-  protected boolean expand() {
+  protected final boolean expand() {
     boolean added = false;
     if (getActivePoolSize() < getMaxPoolSize()) {
       // there is room to expand, so lets create and add an object
       added = createAndAdd();
-      if (added) active.incrementAndGet();
+      if (added) {
+        active.incrementAndGet();
+      }
     }
     return added;
   }
 
   /**
-   * Attempts to shrink the pool to corePoolSize
+   * Attempts to shrink the pool to corePoolSize.
    *
    * @return if pool shrunk.  If shrinking still left the pool larger than core, true should be returned
    */
-  protected boolean shrink() {
+  protected final boolean shrink() {
     final int shrinkBy = getActivePoolSize() - getCorePoolSize();
     // only shrink if active count is larger than core size
     int removed = 0;
@@ -174,7 +191,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    *
    * @throws ClosedPoolException pool is closed
    */
-  protected void checkNotClosed() {
+  protected final  void checkNotClosed() {
     if (!isRunning()) {
       throw new ClosedPoolException();
     }
@@ -186,7 +203,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    *
    * @return if full or not
    */
-  protected boolean isFull() {
+  protected final boolean isFull() {
     return size() >= getActivePoolSize();
   }
 

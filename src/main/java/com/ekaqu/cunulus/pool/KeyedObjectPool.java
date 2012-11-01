@@ -38,40 +38,60 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <K> key type
  * @param <V> value type
  */
-//TODO find a way to replace keySupplier, and factory... don't like them
-//TODO need more concurrent testing and review
 @ThreadSafe
 @Beta
-public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
+public final class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
+
+  /*
+  TODO find a way to replace keySupplier, and factory... don't like them
+  TODO need more concurrent testing and review
+   */
 
   //TODO should this be configurable?
+  /**
+   * Predicate filtering out all pools that are empty.
+   */
   private final Predicate<Map.Entry<K, Pool<V>>> poolSizePredicate = new Predicate<Map.Entry<K, Pool<V>>>() {
     @Override
     public boolean apply(@Nullable final Map.Entry<K, Pool<V>> input) {
-      if (input == null) return false;
+      if (input == null) {
+        return false;
+      }
       final Pool<V> pool = input.getValue();
       return !pool.isEmpty() || pool.getActivePoolSize() < pool.getMaxPoolSize();
     }
   };
 
   //TODO should poolMap and/ore loadBalancer be configurable?
+  /**
+   * Map of all pools.
+   */
   private final Map<K, Pool<V>> poolMap = Maps.newConcurrentMap();
+
+  /**
+   * Load balancer around map pools.
+   */
   private final CollectionLoadBalancer<Map.Entry<K, Pool<V>>> loadBalancer =
-      CollectionLoadBalancer.create(poolMap.entrySet(), LoadBalancers.<Map.Entry<K, Pool<V>>>defaultLoadBalancer(), poolSizePredicate);
+      CollectionLoadBalancer.create(poolMap.entrySet(), LoadBalancers.<Map.Entry<K, Pool<V>>>defaultLoadBalancer(),
+          poolSizePredicate);
 
   /**
    * When the pool is empty, used to wait for expansion or returned data.
    */
   private final Lock lock = new ReentrantLock();
+
+  /**
+   * Used to wait for pool to be non empty.
+   */
   private final Condition notEmpty = lock.newCondition();
 
   /**
-   * Used to synchronize pool expansion
+   * Used to synchronize pool expansion.
    */
   private final Object expandingLock = new Object();
 
   /**
-   * Used to expand the pool in the background
+   * Used to expand the pool in the background.
    */
   private final Runnable expandPool = new Runnable() {
     @Override
@@ -80,17 +100,35 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     }
   };
 
+  /**
+   * Creates keys.
+   */
   @GuardedBy("expandingLock")
   private final Supplier<K> keySupplier;
 
+  /**
+   * Creates object factories given a key from {@link #keySupplier}.
+   */
   @GuardedBy("expandingLock")
   private final Factory<K, ObjectFactory<V>> factory;
 
+  /**
+   * Used for background tasks.
+   */
   private final ExecutorService executorService;
-  private final int coreSizePerKey, maxSizePerKey;
 
   /**
-   * Creates a new KeyedObjectPool
+   * Min size of pools under this one.
+   */
+  private final int coreSizePerKey;
+
+  /**
+   * Max size of the pools under this one.
+   */
+  private final int maxSizePerKey;
+
+  /**
+   * Creates a new KeyedObjectPool.
    *
    * @param keySupplier     creates new keys
    * @param factory         creates new ObjectFactory based of keys from keySupplier
@@ -151,6 +189,15 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     return borrow(pool, key, timeout, unit);
   }
 
+  /**
+   * Borrow an element from the given pool.
+   *
+   * @param pool to get data from
+   * @param key key for retry value
+   * @param timeout how long to wait for pool to get data
+   * @param unit defines timeout format
+   * @return optional entry
+   */
   private Optional<Map.Entry<K, V>> borrow(final Pool<V> pool, final K key, final long timeout, final TimeUnit unit) {
     Optional<Map.Entry<K, V>> ret = Optional.absent();
     if (pool != null) {
@@ -302,7 +349,9 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   /**
-   * The size of all pools added together
+   * The size of all pools added together.
+   *
+   * @return size of all pools
    */
   @Override
   public int size() {
@@ -333,14 +382,16 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   /**
-   * Checks if all pools are empty or not
+   * Checks if all pools are empty or not.
    *
    * @return true if at least one pool contains an object
    */
   @Override
   public boolean isEmpty() {
     for (final Pool<V> pool : poolMap.values()) {
-      if (!pool.isEmpty()) return false;
+      if (!pool.isEmpty()) {
+        return false;
+      }
     }
     return true;
   }

@@ -62,6 +62,7 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
    * This method should run between O(1) and O(n)
    *
    * @param key key to use
+   * @return optional entry
    * @throws ClosedPoolException      pool is closed
    * @throws IllegalArgumentException if key doesn't exist
    */
@@ -75,6 +76,9 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
    * This method should run between O(1) and O(n)
    *
    * @param key key to use
+   * @param timeout how long to wait for items if pool is empty
+   * @param unit used for timeout
+   * @return optional entry
    * @throws ClosedPoolException      pool is closed
    * @throws IllegalArgumentException if key doesn't exist
    */

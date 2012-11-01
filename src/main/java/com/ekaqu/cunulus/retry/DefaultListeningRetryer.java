@@ -19,21 +19,35 @@ import java.util.concurrent.ExecutorService;
  * provided.
  */
 @Beta
-class DefaultListeningRetryer implements ListeningRetryer {
+final class DefaultListeningRetryer implements ListeningRetryer {
+
+  /**
+   * Executor to run retry operations in.
+   */
   private final ListeningExecutorService executorService;
+
+  /**
+   * retryer for all tasks.
+   */
   private final Retryer retryer;
 
   /**
-   * Creates a new ListeningRetryer that will execute retry operations in a executorService
+   * Creates a new ListeningRetryer that will execute retry operations in a executorService.
    * <p/>
    * Decorates the executorService to be a {@link ListeningExecutorService}
+   *
+   * @param executorService to run retry operations in
+   * @param retryer to run tasks in
    */
   public DefaultListeningRetryer(final ExecutorService executorService, final Retryer retryer) {
     this(MoreExecutors.listeningDecorator(executorService), retryer);
   }
 
   /**
-   * Creates a new ListeningRetryer that will execute retry operations in a executorService
+   * Creates a new ListeningRetryer that will execute retry operations in a executorService.
+   *
+   * @param executorService to run retry operations in
+   * @param retryer to run tasks in
    */
   public DefaultListeningRetryer(final ListeningExecutorService executorService, final Retryer retryer) {
     this.executorService = Preconditions.checkNotNull(executorService);

@@ -12,29 +12,44 @@ import javax.annotation.concurrent.NotThreadSafe;
  * If you can get away with using a primitive int, use that instead of this class since its faster.
  */
 @NotThreadSafe
-public class IntegerCounter extends Number {
+public final class IntegerCounter extends Number {
 
+  /**
+   * Counter used by all API calls.
+   */
   private int counter;
 
-  public IntegerCounter(int i) {
+  /**
+   * Creates a new counter with i as the starting value.
+   *
+   * @param i starting value
+   */
+  public IntegerCounter(final int i) {
     counter = i;
   }
 
+  /**
+   * Creates a new counter with 0 as the starting value.
+   */
   public IntegerCounter() {
     counter = 0;
   }
 
   /**
-   * Get the current value of the counter
+   * Get the current value of the counter.
+   *
+   * @return the current value
    */
-  public final int get() {
+  public int get() {
     return counter;
   }
 
   /**
-   * Set a new value for the counter
+   * Set a new value for the counter.
+   *
+   * @param i value to set
    */
-  public final void set(int i) {
+  public void set(final int i) {
     counter = i;
   }
 
@@ -43,8 +58,10 @@ public class IntegerCounter extends Number {
    * <p/>
    * This method is the same as {@link IntegerCounter#set(int)} but here to match {@link
    * java.util.concurrent.atomic.AtomicInteger}
+   *
+   * @param i value to set
    */
-  public final void lazySet(int i) {
+  public void lazySet(final int i) {
     set(i);
   }
 
@@ -54,8 +71,8 @@ public class IntegerCounter extends Number {
    * @param i value to set
    * @return old value
    */
-  public final int getAndSet(int i) {
-    final int old = counter;
+  public int getAndSet(final int i) {
+    int old = counter;
     counter = i;
     return old;
   }
@@ -68,7 +85,7 @@ public class IntegerCounter extends Number {
    * @param update value to set
    * @return if the value was accepted
    */
-  public final boolean compareAndSet(int expect, int update) {
+  public boolean compareAndSet(final int expect, final int update) {
     if (counter == expect) {
       counter = update;
       return true;
@@ -87,40 +104,40 @@ public class IntegerCounter extends Number {
    * @param update value to set
    * @return if the value was accepted
    */
-  public final boolean weakCompareAndSet(int expect, int update) {
+  public boolean weakCompareAndSet(final int expect, final int update) {
     return compareAndSet(expect, update);
   }
 
   /**
-   * Increments by one the current value and returns the old value
+   * Increments by one the current value and returns the old value.
    *
    * @return value before this method was executed
    */
-  public final int getAndIncrement() {
-    final int old = counter;
+  public int getAndIncrement() {
+    int old = counter;
     counter++;
     return old;
   }
 
   /**
-   * Decrements by one the current value and returns the old value
+   * Decrements by one the current value and returns the old value.
    *
    * @return value before this method was executed
    */
-  public final int getAndDecrement() {
-    final int old = counter;
+  public int getAndDecrement() {
+    int old = counter;
     counter--;
     return old;
   }
 
   /**
-   * Adds by i the current value and returns the old value
+   * Adds by i the current value and returns the old value.
    *
    * @param i value to add
    * @return value before this method was executed
    */
-  public final int getAndAdd(int i) {
-    final int old = counter;
+  public int getAndAdd(final int i) {
+    int old = counter;
     counter += i;
     return old;
   }
@@ -130,7 +147,7 @@ public class IntegerCounter extends Number {
    *
    * @return incremented value
    */
-  public final int incrementAndGet() {
+  public int incrementAndGet() {
     return ++counter;
   }
 
@@ -139,16 +156,17 @@ public class IntegerCounter extends Number {
    *
    * @return Decremented value
    */
-  public final int decrementAndGet() {
+  public int decrementAndGet() {
     return --counter;
   }
 
   /**
    * Adds by i the current value; returns the result.
    *
+   * @param i value to add
    * @return Added value
    */
-  public final int addAndGet(int i) {
+  public int addAndGet(final int i) {
     return counter += i;
   }
 

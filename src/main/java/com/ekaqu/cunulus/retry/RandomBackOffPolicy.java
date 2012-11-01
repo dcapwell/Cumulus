@@ -5,15 +5,22 @@ import com.google.common.base.Preconditions;
 import java.util.Random;
 
 /**
- * Backs off for a random amount of time
+ * Backs off for a random amount of time.
  */
-public class RandomBackOffPolicy extends AbstractSleepingBackOffPolicy {
+public final class RandomBackOffPolicy extends AbstractSleepingBackOffPolicy {
 
+  /**
+   * Random used by this policy.
+   */
   private final Random random = new Random();
+
+  /**
+   * Max amount of time in mills to wait.
+   */
   private final int maxTime;
 
   /**
-   * Creates a new RandomBackOffPolicy that sleeps for a random amount of time
+   * Creates a new RandomBackOffPolicy that sleeps for a random amount of time.
    *
    * @param maxTime allowed to sleep in milliseconds
    */

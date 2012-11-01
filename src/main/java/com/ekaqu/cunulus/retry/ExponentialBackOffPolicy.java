@@ -10,19 +10,37 @@ import java.util.concurrent.TimeUnit;
  * The exponential algorithm is the same that was found in <a href="https://github.com/Netflix/astyanax">astyanax</a>.
  */
 @ThreadSafe
-public class ExponentialBackOffPolicy extends AbstractSleepingBackOffPolicy {
+public final class ExponentialBackOffPolicy extends AbstractSleepingBackOffPolicy {
+
+  /**
+   * Default amount of time to wait between retries.
+   */
+  private static final long DEFAULT_BASE_WAIT_TIME = 500;
+
+  /**
+   * Default unit for base wait time.
+   */
+  private static final TimeUnit DEFAULT_WAIT_UNIT = TimeUnit.MILLISECONDS;
+
+  /**
+   * Random used to vary sleep time.
+   */
   private final Random random = new Random();
+
+  /**
+   * Min amount of time in mills to sleep.
+   */
   private final long baseSleepTimeMs;
 
   /**
-   * Creates a new BackOffPolicy with default sleeping time of 500 Milliseconds
+   * Creates a new BackOffPolicy with default sleeping time of 500 Milliseconds.
    */
   public ExponentialBackOffPolicy() {
-    this(500, TimeUnit.MILLISECONDS);
+    this(DEFAULT_BASE_WAIT_TIME, DEFAULT_WAIT_UNIT);
   }
 
   /**
-   * Creates a new BackOffPolicy with a base sleep time
+   * Creates a new BackOffPolicy with a base sleep time.
    *
    * @param baseSleepTime how long to sleep
    * @param unit          describes what the long sleep time is

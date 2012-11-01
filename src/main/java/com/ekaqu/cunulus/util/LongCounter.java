@@ -12,29 +12,44 @@ import javax.annotation.concurrent.NotThreadSafe;
  * If you can get away with using a primitive long, use that instead of this class since its faster.
  */
 @NotThreadSafe
-public class LongCounter extends Number {
+public final class LongCounter extends Number {
 
+  /**
+   * Counter used by all API calls.
+   */
   private long counter;
 
-  public LongCounter(long i) {
+  /**
+   * Creates a new counter with the long as the starting value.
+   *
+   * @param i starting value
+   */
+  public LongCounter(final long i) {
     counter = i;
   }
 
+  /**
+   * Creates a new counter with 0 as the starting value.
+   */
   public LongCounter() {
     counter = 0;
   }
 
   /**
-   * Get the current value of the counter
+   * Get the current value of the counter.
+   *
+   * @return current value
    */
-  public final long get() {
+  public long get() {
     return counter;
   }
 
   /**
-   * Set a new value for the counter
+   * Set a new value for the counter.
+   *
+   * @param i value to set the counter to
    */
-  public final void set(long i) {
+  public void set(final long i) {
     counter = i;
   }
 
@@ -43,8 +58,10 @@ public class LongCounter extends Number {
    * <p/>
    * This method is the same as {@link LongCounter#set(long)} but here to match {@link
    * java.util.concurrent.atomic.AtomicLong}
+   *
+   * @param i value to set the counter to
    */
-  public final void lazySet(long i) {
+  public void lazySet(final long i) {
     set(i);
   }
 
@@ -54,8 +71,8 @@ public class LongCounter extends Number {
    * @param i value to set
    * @return old value
    */
-  public final long getAndSet(long i) {
-    final long old = counter;
+  public long getAndSet(final long i) {
+    long old = counter;
     counter = i;
     return old;
   }
@@ -68,7 +85,7 @@ public class LongCounter extends Number {
    * @param update value to set
    * @return if the value was accepted
    */
-  public final boolean compareAndSet(long expect, long update) {
+  public boolean compareAndSet(final long expect, final long update) {
     if (counter == expect) {
       counter = update;
       return true;
@@ -87,40 +104,40 @@ public class LongCounter extends Number {
    * @param update value to set
    * @return if the value was accepted
    */
-  public final boolean weakCompareAndSet(long expect, long update) {
+  public boolean weakCompareAndSet(final long expect, final long update) {
     return compareAndSet(expect, update);
   }
 
   /**
-   * Increments by one the current value and returns the old value
+   * Increments by one the current value and returns the old value.
    *
    * @return value before this method was executed
    */
-  public final long getAndIncrement() {
-    final long old = counter;
+  public long getAndIncrement() {
+    long old = counter;
     counter++;
     return old;
   }
 
   /**
-   * Decrements by one the current value and returns the old value
+   * Decrements by one the current value and returns the old value.
    *
    * @return value before this method was executed
    */
-  public final long getAndDecrement() {
-    final long old = counter;
+  public long getAndDecrement() {
+    long old = counter;
     counter--;
     return old;
   }
 
   /**
-   * Adds by i the current value and returns the old value
+   * Adds by i the current value and returns the old value.
    *
    * @param i value to add
    * @return value before this method was executed
    */
-  public final long getAndAdd(long i) {
-    final long old = counter;
+  public long getAndAdd(final long i) {
+    long old = counter;
     counter += i;
     return old;
   }
@@ -130,7 +147,7 @@ public class LongCounter extends Number {
    *
    * @return incremented value
    */
-  public final long incrementAndGet() {
+  public long incrementAndGet() {
     return ++counter;
   }
 
@@ -139,21 +156,22 @@ public class LongCounter extends Number {
    *
    * @return Decremented value
    */
-  public final long decrementAndGet() {
+  public long decrementAndGet() {
     return --counter;
   }
 
   /**
    * Adds by i the current value; returns the result.
    *
+   * @param i added to counter
    * @return Added value
    */
-  public final long addAndGet(long i) {
+  public long addAndGet(final long i) {
     return counter += i;
   }
 
   @Override
-  public String toString() {
+  public  String toString() {
     return Long.toString(counter);
   }
 

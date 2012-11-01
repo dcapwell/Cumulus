@@ -25,13 +25,26 @@ import java.util.concurrent.TimeUnit;
  */
 @ThreadSafe
 @Beta
-public class ObjectPool<T> extends AbstractPool<T> {
+public final class ObjectPool<T> extends AbstractPool<T> {
 
+  /**
+   * Queue containing the objects for the pool.
+   */
   private final BlockingQueue<T> available = Queues.newLinkedBlockingQueue();
 
+  /**
+   * Creates new objects for the pool.
+   */
   private final ObjectFactory<T> objectFactory;
+
+  /**
+   * Used for background operations.
+   */
   private final ExecutorService executorService;
 
+  /**
+   * Task to run in {@link #executorService}.
+   */
   private final Runnable createObjectRunnable = new Runnable() {
     @Override
     public void run() {
@@ -39,6 +52,14 @@ public class ObjectPool<T> extends AbstractPool<T> {
     }
   };
 
+  /**
+   * Creates a new object pool.
+   *
+   * @param objectFactory creates elements
+   * @param executorService used for background tasks
+   * @param corePoolSize min size of the pool
+   * @param maxPoolSize max size of the pool
+   */
   public ObjectPool(final ObjectFactory<T> objectFactory, final ExecutorService executorService,
                     final int corePoolSize, final int maxPoolSize) {
     this.objectFactory = objectFactory;
@@ -152,7 +173,7 @@ public class ObjectPool<T> extends AbstractPool<T> {
   }
 
   /**
-   * calls {@link com.ekaqu.cunulus.pool.ObjectPool#expand()} in the background
+   * calls {@link com.ekaqu.cunulus.pool.ObjectPool#expand()} in the background.
    */
   private void tryCreateAsync() {
     this.executorService.submit(createObjectRunnable);

@@ -2,14 +2,12 @@ package com.ekaqu.cunulus.pool.mocks;
 
 import com.ekaqu.cunulus.loadbalancer.CollectionLoadBalancer;
 import com.ekaqu.cunulus.loadbalancer.LoadBalancers;
-import com.ekaqu.cunulus.loadbalancer.RoundRobinLoadBalancer;
 import com.ekaqu.cunulus.pool.AbstractObjectFactory;
 import com.ekaqu.cunulus.pool.ObjectFactory;
 import com.ekaqu.cunulus.util.Factory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Generates strings for testing.  The output is one to ten in that order and once it hits ten it rests back to one.

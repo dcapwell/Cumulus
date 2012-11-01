@@ -4,10 +4,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A BackOffPolicy that will sleep for a fixed rate
+ * A BackOffPolicy that will sleep for a fixed rate.
  */
 @ThreadSafe
-public class FixedBackOffPolicy extends AbstractSleepingBackOffPolicy {
+public final class FixedBackOffPolicy extends AbstractSleepingBackOffPolicy {
+
+  /**
+   * Fixed time in mills for how long to sleep.
+   */
   private final long sleepTime;
 
   /**
