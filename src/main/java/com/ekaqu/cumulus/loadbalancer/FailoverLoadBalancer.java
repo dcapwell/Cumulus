@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A FailOver load balancer will return the same element over and over until a condition is meet.  When this happens,
+ * A Failover load balancer will return the same element over and over until a condition is meet.  When this happens,
  * the load balancer will choose a different element and return that.  This cycle repeats as long as there are
  * elements.
  *

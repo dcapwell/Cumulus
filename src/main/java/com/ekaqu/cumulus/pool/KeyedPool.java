@@ -19,33 +19,29 @@ import java.util.concurrent.TimeUnit;
  * Example building with the {@link PoolBuilder}
  * <pre>
  * {@code
- * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
- *                                          .corePoolSize(2) // optional size the pool should try to stay around
- *                                          .maxPoolSize(4) // optional max size the pool can reach
- *                                          .executorService(executorService) // optional executor service for
- * background pool operations
- *                                          .withKeyType(String.class)
- *                                              .coreSizePerKey(2) // optional size the underlining pools should stay
- * around
- *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
- *                                              .keySupplier(keySupplier) // creates new keys that index underline
- * pools
- *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys
- * which defines how to create new pooled entities
- *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * ExecutingPool<Map.Entry<K, V>> pool;
+ * pool = new PoolBuilder<K>()
+ *       .corePoolSize(2) // optional size the pool should try to stay around
+ *       .maxPoolSize(4) // optional max size the pool can reach
+ *       .executorService(executorService) // optional executor service for
+ *       .withKeyType(K.class)
+ *          .coreSizePerKey(2) // optional size the underlining pools should stay around
+ *          .maxSizePerKey(4) // optional max size each underline pool can reach
+ *          .keySupplier(keySupplier) // creates new keys that index underline pools
+ *          .factory(poolObjFactory) // creates objects for new pools
+ *          .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
  * <p/>
  * A simpler example
  * <pre>
  * {@code
- * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
- *                                          .withKeyType(String.class)
- *                                              .keySupplier(keySupplier) // creates new keys that index underline
- * pools
- *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys
- * which defines how to create new pooled entities
- *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * ExecutingPool<Map.Entry<K, V>> pool;
+ * pool = new PoolBuilder<K>()
+ *       .withKeyType(K.class)
+ *          .keySupplier(keySupplier) // creates new keys that index underline pools
+ *          .factory(poolObjFactory) // creates objects for new pools
+ *          .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
  *
@@ -75,9 +71,9 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
    * <p/>
    * This method should run between O(1) and O(n)
    *
-   * @param key key to use
+   * @param key     key to use
    * @param timeout how long to wait for items if pool is empty
-   * @param unit used for timeout
+   * @param unit    used for timeout
    * @return optional entry
    * @throws ClosedPoolException      pool is closed
    * @throws IllegalArgumentException if key doesn't exist

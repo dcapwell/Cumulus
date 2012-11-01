@@ -40,33 +40,29 @@ import java.util.concurrent.ThreadFactory;
  * How to build a {@link ExecutingPool} backed by {@link KeyedPool}
  * <pre>
  * {@code
- * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
- *                                          .corePoolSize(2) // optional size the pool should try to stay around
- *                                          .maxPoolSize(4) // optional max size the pool can reach
- *                                          .executorService(executorService) // optional executor service for
- * background pool operations
- *                                          .withKeyType(String.class)
- *                                              .coreSizePerKey(2) // optional size the underlining pools should stay
- * around
- *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
- *                                              .keySupplier(keySupplier) // creates new keys that index underline
- * pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys
- * which defines how to create new pooled entities
- *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * ExecutingPool<Map.Entry<K, V>> pool;
+ * pool = new PoolBuilder<K>()
+ *       .corePoolSize(2) // optional size the pool should try to stay around
+ *       .maxPoolSize(4) // optional max size the pool can reach
+ *       .executorService(executorService) // optional executor service for
+ *       .withKeyType(K.class)
+ *          .coreSizePerKey(2) // optional size the underlining pools should stay around
+ *          .maxSizePerKey(4) // optional max size each underline pool can reach
+ *          .keySupplier(keySupplier) // creates new keys that index underline pools
+ *          .factory(poolObjFactory) // creates objects for new pools
+ *          .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
  * <p/>
  * A simpler example building a {@link ExecutingPool} backed by {@link KeyedPool}
  * <pre>
  * {@code
- * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
- *                                          .withKeyType(String.class)
- *                                              .keySupplier(keySupplier) // creates new keys that index underline
- * pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys
- * which defines how to create new pooled entities
- *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
+ * ExecutingPool<Map.Entry<K, V>> pool;
+ * pool = new PoolBuilder<K>()
+ *       .withKeyType(K.class)
+ *          .keySupplier(keySupplier) // creates new keys that index underline pools
+ *          .factory(poolObjFactory) // creates objects for new pools
+ *          .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
  *
