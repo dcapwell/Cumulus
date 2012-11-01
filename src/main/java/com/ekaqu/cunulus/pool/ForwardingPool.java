@@ -14,11 +14,15 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> type of the pool
  */
-public class ForwardingPool<T> extends ForwardingService implements Pool<T> {
+public abstract class ForwardingPool<T> extends ForwardingService implements Pool<T> {
+
+  /**
+   * Underline pool to forward to.
+   */
   private final Pool<T> pool;
 
   /**
-   * Create a new ForwardingPool that forwards all requests to the give pool
+   * Create a new ForwardingPool that forwards all requests to the give pool.
    *
    * @param pool pool to forward to
    */

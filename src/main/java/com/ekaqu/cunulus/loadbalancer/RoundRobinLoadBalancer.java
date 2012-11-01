@@ -15,14 +15,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param <E> element type
  */
 @Beta
-public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
+public final class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
 
+  /**
+   * Current index for the next element.
+   */
   private final AtomicInteger index;
 
+  /**
+   * Creates a new load balancer.
+   */
   private RoundRobinLoadBalancer() {
     index = new AtomicInteger(0);
   }
 
+  /**
+   * Creates a new load balancer with starting size.
+   *
+   * @param startingSize of the index
+   */
   @VisibleForTesting
   RoundRobinLoadBalancer(final int startingSize) {
     index = new AtomicInteger(startingSize);
@@ -30,6 +41,9 @@ public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
 
   /**
    * Creates a new Round Robin based load balancer
+   *
+   * @param <E> load balancer element type
+   * @return new round robin LB
    */
   public static <T> RoundRobinLoadBalancer<T> create() {
     return new RoundRobinLoadBalancer<T>();
@@ -40,7 +54,7 @@ public class RoundRobinLoadBalancer<E> implements LoadBalancer<E> {
    * <p/>
    * If the list is null or empty, returns null.
    *
-   * @param items
+   * @param items to load balance
    * @return if list is null or empty returns null, else an element from the list
    */
   @Override

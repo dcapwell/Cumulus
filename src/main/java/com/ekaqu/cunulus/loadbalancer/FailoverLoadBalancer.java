@@ -15,10 +15,16 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <E> element type
  */
 @Beta
-public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
+public final class FailoverLoadBalancer<E> implements LoadBalancer<E> {
 
+  /**
+   * Current element to return.
+   */
   private final AtomicReference<E> current = new AtomicReference<E>();
 
+  /**
+   * Load balancer to use to LB.
+   */
   private final LoadBalancer<E> delegate;
 
   /**
@@ -36,6 +42,8 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
    * at which point it will use the delegate loadBalancer to get a new result.
    *
    * @param delegate loadBalancer to fetch new results
+   * @param <E> element type
+   * @return new failover LB
    */
   public static <E> FailoverLoadBalancer<E> create(final LoadBalancer<E> delegate) {
     return new FailoverLoadBalancer<E>(delegate);
@@ -55,7 +63,9 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
    */
   @Override
   public E get(@Nullable final List<E> items) {
-    if (items == null || items.isEmpty()) return null;
+    if (items == null || items.isEmpty()) {
+      return null;
+    }
 
     E item = current.get();
     // there is no current value, so delegate and set that

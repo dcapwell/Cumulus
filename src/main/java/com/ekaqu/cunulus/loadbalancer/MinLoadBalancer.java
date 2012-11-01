@@ -14,7 +14,7 @@ import java.util.List;
  * @param <E> element type
  */
 @Beta
-public class MinLoadBalancer<E> extends ComparableLoadBalancer<E> {
+public final class MinLoadBalancer<E> extends ComparableLoadBalancer<E> {
 
   /**
    * Creates a new MinLoadBalancer that will return the smallest element.
@@ -29,6 +29,8 @@ public class MinLoadBalancer<E> extends ComparableLoadBalancer<E> {
    * Creates a new MinLoadBalancer that will return the smallest element.
    *
    * @param comparator used to define smallest
+   * @param <E> element type
+   * @return new min LB
    */
   public static <E> MinLoadBalancer<E> create(final Comparator<E> comparator) {
     return new MinLoadBalancer<E>(comparator);

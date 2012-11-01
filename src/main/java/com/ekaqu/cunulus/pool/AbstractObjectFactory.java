@@ -3,7 +3,9 @@ package com.ekaqu.cunulus.pool;
 import com.google.common.base.Preconditions;
 
 /**
- * Simplifies creating an ObjectFactory so only get and optional validation
+ * Simplifies creating an ObjectFactory so only get and optional validation.
+ *
+ * @param <T> type factory works with
  */
 public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
 
@@ -12,6 +14,9 @@ public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
    * AbstractObjectFactory#validateException(Throwable)} methods to validate the given input
    *
    * @see ObjectFactory#validate(Object, Throwable)
+   * @param obj to validate
+   * @param error thrown by obj
+   * @return what actions to take
    */
   @Override
   public State validate(final T obj, final Throwable error) {
@@ -46,14 +51,20 @@ public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
 
 
   /**
-   * Checks if a given object is safe to reuse
+   * Checks if a given object is safe to reuse.
+   *
+   * @param obj to validate
+   * @return what actions to take
    */
   protected State validate(final T obj) {
     return State.VALID;
   }
 
   /**
-   * Checks a given {@link Throwable} to see if it should invalidate an object
+   * Checks a given {@link Throwable} to see if it should invalidate an object.
+   *
+   * @param error thrown by obj
+   * @return what actions to take
    */
   protected State validateException(final Throwable error) {
     return State.VALID;

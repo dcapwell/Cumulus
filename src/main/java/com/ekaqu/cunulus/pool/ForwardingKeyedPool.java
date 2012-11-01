@@ -13,13 +13,17 @@ import java.util.concurrent.TimeUnit;
  * @param <K> key type of the pool
  * @param <V> value type of the pool
  */
-public class ForwardingKeyedPool<K, V> extends ForwardingPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
+public abstract class ForwardingKeyedPool<K, V> extends ForwardingPool<Map.Entry<K, V>> implements KeyedPool<K, V> {
+
+  /**
+   * Underline pool to forward to.
+   */
   private final KeyedPool<K, V> pool;
 
   /**
-   * Creates a new ForwardingKeyedPool that forwards all requests to the given pool
+   * Creates a new ForwardingKeyedPool that forwards all requests to the given pool.
    *
-   * @param pool
+   * @param pool to forward to
    */
   public ForwardingKeyedPool(final KeyedPool<K, V> pool) {
     super(pool); // this should check that pool is not null

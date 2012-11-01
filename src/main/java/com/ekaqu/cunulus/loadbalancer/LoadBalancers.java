@@ -1,5 +1,8 @@
 package com.ekaqu.cunulus.loadbalancer;
 
+/**
+ * Useful methods for working with load balancers.
+ */
 public class LoadBalancers {
 
   /**

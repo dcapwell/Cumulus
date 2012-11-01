@@ -44,6 +44,12 @@ import java.util.concurrent.TimeUnit;
  * {@link Error} or {@link RuntimeException} then it is rethrown
  */
 public abstract class ExecutingPool<T> extends ForwardingPool<T> {
+
+  /**
+   * Creates a new executing pool around the given pool.
+   *
+   * @param pool to decorate
+   */
   public ExecutingPool(final Pool<T> pool) {
     super(pool);
   }
@@ -51,6 +57,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   /**
    * Execute the given block passing in a value from the pool.
    *
+   * @param block of code to execute
    * @return if pool had an element and that element was given to the block
    */
   public abstract boolean execute(Block<T> block);
@@ -58,6 +65,7 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   /**
    * Execute the given block passing in a value from the pool.
    *
+   * @param block of code to execute
    * @param waitTime time to wait for a pooled object to show up.
    * @param unit     time unit used to determine how long to wait for an object to show up.
    * @return if pool had an element and that element was given to the block
@@ -67,6 +75,10 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   /**
    * Creates a new {@link ExecutingPool}.  This executing pool will call the execute block in the same thread and at
    * most one time.
+   *
+   * @param pool to decorate
+   * @param <T> type of pool
+   * @return executing pool decorating the given pool
    */
   public static <T> ExecutingPool<T> executor(final Pool<T> pool) {
     return new ExecutingPool<T>(pool) {
@@ -111,6 +123,11 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   /**
    * Creates a new {@link ExecutingPool} with retries.  This executing pool will call the execute block in the same
    * thread and potentially multiple times; based off the {@link Retryer}.
+   *
+   * @param pool to decorate
+   * @param retryer used to retry operations
+   * @param <T> type of pool
+   * @return executing pool decorating the given pool
    */
   public static <T> ExecutingPool<T> retryingExecutor(final Pool<T> pool, final Retryer retryer) {
     return new ExecutingPool<T>(pool) {
@@ -178,8 +195,14 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
         }
       }
 
+      /**
+       * Used to force retry.
+       */
       final class ForcePoolRetryException extends PoolRuntimeException {
 
+        /**
+         * Creates a new force pool retry exception.
+         */
         public ForcePoolRetryException() {
           super("Force pool retry");
         }

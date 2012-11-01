@@ -15,7 +15,7 @@ import java.util.List;
  * @param <E> element type
  */
 @Beta
-public class MaxLoadBalancer<E> extends ComparableLoadBalancer<E> {
+public final class MaxLoadBalancer<E> extends ComparableLoadBalancer<E> {
 
   /**
    * Creates a new MaxLoadBalancer that will return the largest element.
@@ -30,6 +30,8 @@ public class MaxLoadBalancer<E> extends ComparableLoadBalancer<E> {
    * Creates a new MaxLoadBalancer that will return the largest element.
    *
    * @param comparator used to define largest
+   * @param <E> element type
+   * @return new max LB
    */
   public static <E> MaxLoadBalancer<E> create(final Comparator<E> comparator) {
     return new MaxLoadBalancer<E>(comparator);
