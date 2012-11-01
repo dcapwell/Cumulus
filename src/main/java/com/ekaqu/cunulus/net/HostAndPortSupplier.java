@@ -24,6 +24,7 @@ public class HostAndPortSupplier implements Supplier<HostAndPort> {
 
   /**
    * Creates a new Supplier that load-balances over the provided list
+   *
    * @param addresses list of {@link HostAndPort} that must have size greater than zero
    */
   public HostAndPortSupplier(final List<HostAndPort> addresses) {
@@ -33,25 +34,26 @@ public class HostAndPortSupplier implements Supplier<HostAndPort> {
   }
 
   /**
-   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be
-   * splittable by ','.
+   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be splittable by
+   * ','.
    */
   public static HostAndPortSupplier fromString(final String connections) {
     List<HostAndPort> addresses = Lists.newArrayList();
-    for(final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
+    for (final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
       addresses.add(HostAndPort.fromString(pair));
     }
     return new HostAndPortSupplier(addresses);
   }
 
   /**
-   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be
-   * splittable by ','.
+   * Creates a new HostAndPortSupplier based off the connection string provided.  All hosts should be splittable by
+   * ','.
+   *
    * @param defaultPort defaultPort is connection string doesn't contain one
    */
   public static HostAndPortSupplier fromString(final String connections, final int defaultPort) {
     List<HostAndPort> addresses = Lists.newArrayList();
-    for(final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
+    for (final String pair : Splitter.on(",").omitEmptyStrings().trimResults().split(connections)) {
       addresses.add(HostAndPort.fromString(pair).withDefaultPort(defaultPort));
     }
     return new HostAndPortSupplier(addresses);

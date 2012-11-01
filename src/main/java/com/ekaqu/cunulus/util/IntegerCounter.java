@@ -3,10 +3,11 @@ package com.ekaqu.cunulus.util;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Basic counter class backed by a int.  Methods are the same as {@link java.util.concurrent.atomic.AtomicInteger} so it should be easy to swap between the two.
+ * Basic counter class backed by a int.  Methods are the same as {@link java.util.concurrent.atomic.AtomicInteger} so it
+ * should be easy to swap between the two.
  * <p/>
- * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an
- * approximate number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicInteger}.
+ * This class is not thread safe but can still be used concurrently if only incrementing/decrementing and an approximate
+ * number is fine.  For precise results in a concurrent environment use {@link java.util.concurrent.atomic.AtomicInteger}.
  * <p/>
  * If you can get away with using a primitive int, use that instead of this class since its faster.
  */
@@ -40,7 +41,8 @@ public class IntegerCounter extends Number {
   /**
    * Eventually sets to the given value.
    * <p/>
-   * This method is the same as {@link IntegerCounter#set(int)} but here to match {@link java.util.concurrent.atomic.AtomicInteger}
+   * This method is the same as {@link IntegerCounter#set(int)} but here to match {@link
+   * java.util.concurrent.atomic.AtomicInteger}
    */
   public final void lazySet(int i) {
     set(i);
@@ -59,8 +61,8 @@ public class IntegerCounter extends Number {
   }
 
   /**
-   * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if
-   * value was accepted.
+   * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if value was
+   * accepted.
    *
    * @param expect what the current value should be
    * @param update value to set
@@ -75,10 +77,11 @@ public class IntegerCounter extends Number {
   }
 
   /**
-   * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if
-   * value was accepted.
+   * Set the counter to update iff {@link com.ekaqu.cunulus.util.IntegerCounter#get()} == expect.  Returns if value was
+   * accepted.
    * <p/>
-   * This is the same as {@link IntegerCounter#compareAndSet(int, int)} but here to match {@link java.util.concurrent.atomic.AtomicInteger}
+   * This is the same as {@link IntegerCounter#compareAndSet(int, int)} but here to match {@link
+   * java.util.concurrent.atomic.AtomicInteger}
    *
    * @param expect what the current value should be
    * @param update value to set

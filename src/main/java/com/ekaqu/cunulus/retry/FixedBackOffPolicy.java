@@ -12,8 +12,9 @@ public class FixedBackOffPolicy extends AbstractSleepingBackOffPolicy {
 
   /**
    * Creates a new BackOffPolicy that sleeps for the given time.
+   *
    * @param waitTime how long to sleep
-   * @param unit describes what the long sleep time is
+   * @param unit     describes what the long sleep time is
    */
   public FixedBackOffPolicy(final long waitTime, final TimeUnit unit) {
     sleepTime = unit.toMillis(waitTime);

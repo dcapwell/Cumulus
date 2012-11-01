@@ -13,7 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Helps build {@link Pool} objects with a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> and sensible defaults.
+ * Helps build {@link Pool} objects with a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a>
+ * and sensible defaults.
  * <p/>
  * Example building a {@link ExecutingPool} backed by a {@link Pool} using the builder
  * <pre>
@@ -42,12 +43,16 @@ import java.util.concurrent.ThreadFactory;
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .corePoolSize(2) // optional size the pool should try to stay around
  *                                          .maxPoolSize(4) // optional max size the pool can reach
- *                                          .executorService(executorService) // optional executor service for background pool operations
+ *                                          .executorService(executorService) // optional executor service for
+ * background pool operations
  *                                          .withKeyType(String.class)
- *                                              .coreSizePerKey(2) // optional size the underlining pools should stay around
+ *                                              .coreSizePerKey(2) // optional size the underlining pools should stay
+ * around
  *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
- *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline
+ * pools
+ *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys
+ * which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
@@ -57,8 +62,10 @@ import java.util.concurrent.ThreadFactory;
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .withKeyType(String.class)
- *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline
+ * pools
+ *                                              .factory(stringFactory) // creates a new ObjectFactory for the keys
+ * which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>

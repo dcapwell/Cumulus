@@ -24,7 +24,7 @@ public final class Retryers {
    * Creates a new retyer
    *
    * @param maxRetries number of retries to allow
-   * @param policy how to backoff between retries
+   * @param policy     how to backoff between retries
    * @return new retryer
    */
   public static final Retryer newRetryer(final int maxRetries, final BackOffPolicy policy) {
@@ -44,7 +44,7 @@ public final class Retryers {
   /**
    * Creates a new listening retryer using the provided executor service
    *
-   * @param maxRetries number of retries to allow
+   * @param maxRetries      number of retries to allow
    * @param executorService used to run retryer in the background
    * @return new retyer
    */
@@ -56,8 +56,8 @@ public final class Retryers {
   /**
    * Creates a new listening retryer using the provided executor service and backoff plicy
    *
-   * @param maxRetries number of retries to allow
-   * @param policy how to backoff between retries
+   * @param maxRetries      number of retries to allow
+   * @param policy          how to backoff between retries
    * @param executorService used to run retryer in the background
    * @return new retyer
    */
@@ -69,7 +69,7 @@ public final class Retryers {
   /**
    * Creates a new listening retryer using the provided executor service
    *
-   * @param maxRetries number of retries to allow
+   * @param maxRetries      number of retries to allow
    * @param executorService used to run retryer in the background
    * @return new retyer
    */

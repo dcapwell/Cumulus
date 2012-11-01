@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A round robin based load balancer.  Round Robin "selects a resource pointed to by a counter from a list, after which
- * the counter is incremented and if the end is reached, returned to the beginning of the list" -- <a href="http://en.wikipedia.org/wiki/Round-robin">wikipedia</a>
+ * the counter is incremented and if the end is reached, returned to the beginning of the list" -- <a
+ * href="http://en.wikipedia.org/wiki/Round-robin">wikipedia</a>
  *
  * @param <E> element type
  */

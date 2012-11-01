@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  * }
  * }
  * </pre>
- * With the {@link ExecutingPool} you can just pass in a function that will work with the pooled object and let
- * {@link ExecutingPool} handle returning the object to the pool.
+ * With the {@link ExecutingPool} you can just pass in a function that will work with the pooled object and let {@link
+ * ExecutingPool} handle returning the object to the pool.
  * <p/>
  * Example:
  * <pre>
@@ -40,8 +40,8 @@ import java.util.concurrent.TimeUnit;
  * }
  * </pre>
  * <p/>
- * When exceptions are thrown, they will be propagated up as a {@link RuntimeException}.  If the exception is of type {@link Error}
- * or {@link RuntimeException} then it is rethrown
+ * When exceptions are thrown, they will be propagated up as a {@link RuntimeException}.  If the exception is of type
+ * {@link Error} or {@link RuntimeException} then it is rethrown
  */
 public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public ExecutingPool(final Pool<T> pool) {
@@ -65,8 +65,8 @@ public abstract class ExecutingPool<T> extends ForwardingPool<T> {
   public abstract boolean execute(Block<T> block, long waitTime, TimeUnit unit);
 
   /**
-   * Creates a new {@link ExecutingPool}.  This executing pool will call the execute block in the same thread and
-   * at most one time.
+   * Creates a new {@link ExecutingPool}.  This executing pool will call the execute block in the same thread and at
+   * most one time.
    */
   public static <T> ExecutingPool<T> executor(final Pool<T> pool) {
     return new ExecutingPool<T>(pool) {

@@ -8,8 +8,8 @@ import com.google.common.base.Preconditions;
 public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
 
   /**
-   * This method uses the {@link AbstractObjectFactory#validate(Object)} and {@link AbstractObjectFactory#validateException(Throwable)}
-   * methods to validate the given input
+   * This method uses the {@link AbstractObjectFactory#validate(Object)} and {@link
+   * AbstractObjectFactory#validateException(Throwable)} methods to validate the given input
    *
    * @see ObjectFactory#validate(Object, Throwable)
    */

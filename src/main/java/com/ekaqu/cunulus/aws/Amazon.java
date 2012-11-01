@@ -10,20 +10,31 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.Callable;
 
-public class Amazon {
+/**
+ * Class for working with Amazon Instances.
+ */
+public final class Amazon {
 
   /**
-   * Meta Data URL for current instances host metadata
+   * marking private so users don't create this class.
    */
-  public final static String AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/";
+  private Amazon() {
+
+  }
 
   /**
-   * URL for user defined meta data
+   * Meta Data URL for current instances host metadata.
+   */
+  public static final String AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/";
+
+  /**
+   * URL for user defined meta data.
    */
   public static final String AWS_USERDATA_URL = "http://169.254.169.254/latest/user-data/";
 
   /**
-   * Enum class for working with ec2 instance meta data.  A complete list of what is available can be found <a href="http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/AESDG-chapter-instancedata.html">here</a>.
+   * Enum class for working with ec2 instance meta data.  A complete list of what is available can be found <a
+   * href="http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/AESDG-chapter-instancedata.html">here</a>.
    * <p/>
    * All docs for each enum is also from the same link.
    */
@@ -67,7 +78,8 @@ public class Amazon {
     INSTANCE_ID("instance-id"),
 
     /**
-     * The type of instance to launch. For more information, see <a href="http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html>Instance Types</a>.
+     * The type of instance to launch. For more information, see <a href="http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html>Instance
+     * Types</a>.
      */
     INSTANCE_TYPE("instance-type"),
 
@@ -141,16 +153,22 @@ public class Amazon {
 
     private final String path;
 
-    MetaData(final String path) {
+    /**
+     * Creates a new meta data for the given path.
+     */
+    private MetaData(final String path) {
       this.path = path;
     }
 
+    /**
+     * Get the meta data path.
+     */
     public String getPath() {
       return path;
     }
 
     /**
-     * Get the AWS Meta Data URL
+     * Get the AWS Meta Data URL.
      */
     public URL getUrl() {
       try {
@@ -161,7 +179,7 @@ public class Amazon {
     }
 
     /**
-     * Does an HTTP request to the AWS MetaData URL to fetch this value
+     * Does an HTTP request to the AWS MetaData URL to fetch this value.
      *
      * @return value from http request
      * @throws IOException when unable to get value from AWS
@@ -213,6 +231,8 @@ public class Amazon {
      * Sample request:
      * <p/>
      * java -cp cumulus-0.0.1-SNAPSHOT.jar:guava-13.0.1.jar com.ekaqu.cunulus.aws.Amazon\$MetaData PUBLIC_HOSTNAME
+     *
+     * @throws IOException if unable to talk to meta data server
      */
     public static void main(String[] args) throws IOException {
       if (args.length > 0) {

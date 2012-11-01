@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A FailOver load balancer will return the same element over and over until a condition is meet.  When this happens,
- * the load balancer will choose a different element and return that.  This cycle repeats as long as there are elements.
+ * the load balancer will choose a different element and return that.  This cycle repeats as long as there are
+ * elements.
  *
  * @param <E> element type
  */
@@ -41,17 +42,13 @@ public class FailoverLoadBalancer<E> implements LoadBalancer<E> {
   }
 
   /**
-   * Returns the same element over and over again until a given condition has been met.  Once this happens
-   * it will choose a new element.
+   * Returns the same element over and over again until a given condition has been met.  Once this happens it will
+   * choose a new element.
    * <p/>
-   * The following conditions are used to determine "failover":
-   * <ul>
-   * <li>no element has been choosen</li>
-   * <li>user notifies load balancer that an exception has happened</li>
-   * </ul>
+   * The following conditions are used to determine "failover": <ul> <li>no element has been choosen</li> <li>user
+   * notifies load balancer that an exception has happened</li> </ul>
    * <p/>
-   * If
-   * If the current element is not in the provided list, then currently this will return null.
+   * If If the current element is not in the provided list, then currently this will return null.
    *
    * @param items to load balance
    * @return if list is null or empty returns null, else an element from the list

@@ -18,9 +18,9 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Default implementation of the {@link Retryer} interface.  This uses an optional Predicate to allow stopping
- * early for given {@link Exception}s.
- *
+ * Default implementation of the {@link Retryer} interface.  This uses an optional Predicate to allow stopping early for
+ * given {@link Exception}s.
+ * <p/>
  * This class uses recursion to do retries so large amount of retries might cause stack issues.
  */
 @Beta
@@ -32,8 +32,9 @@ class DefaultRetryer implements Retryer {
 
   /**
    * Creates a new Retryer that uses recursion to do retries.  This constructor will accept all exceptions
+   *
    * @param maxRetries how may times to retry operations.  Worst case execution count will be maxRetries + 1
-   * @param policy determines how long to wait between retries
+   * @param policy     determines how long to wait between retries
    */
   public DefaultRetryer(final int maxRetries, final BackOffPolicy policy) {
     this(maxRetries, policy, Predicates.<Exception>alwaysTrue());
@@ -41,8 +42,9 @@ class DefaultRetryer implements Retryer {
 
   /**
    * Creates a new Retryer that uses recursion to do retries.
-   * @param maxRetries how many times to retry operations.  Worst case execution count will be maxRetries + 1
-   * @param policy determines how long to wait between retries
+   *
+   * @param maxRetries         how many times to retry operations.  Worst case execution count will be maxRetries + 1
+   * @param policy             determines how long to wait between retries
    * @param exceptionPredicate allows to break early for given exceptions
    */
   public DefaultRetryer(final int maxRetries, final BackOffPolicy policy,
@@ -105,6 +107,7 @@ class DefaultRetryer implements Retryer {
 
   /**
    * Retries executing a callable object.  Retries are done using recursion.
+   *
    * @throws Exception thrown by the last call to retryableTask
    */
   private <T> T submitWithRetry(final Callable<T> retryableTask, final int retryCount) throws Exception {

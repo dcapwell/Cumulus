@@ -181,7 +181,8 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Checks if the current pool is full.  If a pool is full then a minimum of {@link com.ekaqu.cunulus.pool.AbstractPool#getCorePoolSize()} is available
+   * Checks if the current pool is full.  If a pool is full then a minimum of {@link
+   * com.ekaqu.cunulus.pool.AbstractPool#getCorePoolSize()} is available
    *
    * @return if full or not
    */
@@ -190,8 +191,8 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
   }
 
   /**
-   * Create a new object and add it to the pool if pool size is not too large. This method shouldn't create
-   * new objects if max size has not been surceased.
+   * Create a new object and add it to the pool if pool size is not too large. This method shouldn't create new objects
+   * if max size has not been surceased.
    *
    * @return true if added object to pool
    */

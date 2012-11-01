@@ -2,7 +2,6 @@ package com.ekaqu.cunulus.pool;
 
 import com.ekaqu.cunulus.loadbalancer.CollectionLoadBalancer;
 import com.ekaqu.cunulus.loadbalancer.LoadBalancers;
-import com.ekaqu.cunulus.loadbalancer.RoundRobinLoadBalancer;
 import com.ekaqu.cunulus.util.Factory;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
@@ -173,7 +172,7 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
     Pool<V> pool = poolMap.get(key);
     if (pool != null) {
       pool.returnToPool(object, throwable);
-      if(pool.isRunning()) {
+      if (pool.isRunning()) {
         notifyAdded();
       } else {
         // pool is closing or is closed, so remove
@@ -196,16 +195,13 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   /**
-   * If the pool has room to expand, this method will attempt to expand.  There are three things that make this
-   * a slow operation:
+   * If the pool has room to expand, this method will attempt to expand.  There are three things that make this a slow
+   * operation:
    * <p/>
-   * <ul>
-   * <li>{@link Supplier} used for generating Keys.  This has no expected time and may be a network call</li>
+   * <ul> <li>{@link Supplier} used for generating Keys.  This has no expected time and may be a network call</li>
    * <li>{@link Factory} that generates the {@link ObjectFactory}.  This has no expected time and may be a network
-   * call</li>
-   * <li>{@link com.ekaqu.cunulus.pool.PoolBuilder#build()} that creates a new pool. This has no expected time and
-   * may be a network call N times, where N is the coreSizePerKey</li>
-   * </ul>
+   * call</li> <li>{@link com.ekaqu.cunulus.pool.PoolBuilder#build()} that creates a new pool. This has no expected time
+   * and may be a network call N times, where N is the coreSizePerKey</li> </ul>
    *
    * @return if pool expanded
    */
@@ -244,8 +240,8 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   /**
-   * Causes a wait until a new element has been added.  This should be triggered when an item is returned to the
-   * pool or when the pool expands
+   * Causes a wait until a new element has been added.  This should be triggered when an item is returned to the pool or
+   * when the pool expands
    *
    * @param timeout how long to wait
    * @param unit    unit that the timeout is using
@@ -262,8 +258,8 @@ public class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> impleme
   }
 
   /**
-   * Notifies that an element has been returned to the pool or the pool expanded.  This should waken callers
-   * of {@link KeyedObjectPool#awaitAdded(long, java.util.concurrent.TimeUnit)}
+   * Notifies that an element has been returned to the pool or the pool expanded.  This should waken callers of {@link
+   * KeyedObjectPool#awaitAdded(long, java.util.concurrent.TimeUnit)}
    */
   private void notifyAdded() {
     lock.lock();

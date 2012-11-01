@@ -12,10 +12,11 @@ import java.util.concurrent.ExecutorService;
 /**
  * Default implementation of the {@link ListeningRetryer} interface.  This uses an optional Predicate to allow stopping
  * early for given {@link Exception}s.  All retry operations are done in a {@link ListeningExecutorService}.
- *
+ * <p/>
  * This class uses recursion to do retries so large amount of retries might cause stack issues.
- *
- * The thread safety of this class is dependent on the {@link ListeningExecutorService} and the {@link Retryer} provided.
+ * <p/>
+ * The thread safety of this class is dependent on the {@link ListeningExecutorService} and the {@link Retryer}
+ * provided.
  */
 @Beta
 class DefaultListeningRetryer implements ListeningRetryer {
@@ -24,7 +25,7 @@ class DefaultListeningRetryer implements ListeningRetryer {
 
   /**
    * Creates a new ListeningRetryer that will execute retry operations in a executorService
-   *
+   * <p/>
    * Decorates the executorService to be a {@link ListeningExecutorService}
    */
   public DefaultListeningRetryer(final ExecutorService executorService, final Retryer retryer) {

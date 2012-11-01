@@ -9,13 +9,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Defines a Pool that is essentially a map of {@code Key -> Pool<V>}.
  * <p/>
- * A KeyedPool is also a pool and should act just like any pool, so methods like {@link com.ekaqu.cunulus.pool.Pool#borrow()}
- * should return a valid value.
+ * A KeyedPool is also a pool and should act just like any pool, so methods like {@link
+ * com.ekaqu.cunulus.pool.Pool#borrow()} should return a valid value.
  * <p/>
- * It is recommended that while working with pools that the {@link ExecutingPool} is used with a
- * {@link com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error cases for you.  Also it is best
- * to use the {@link PoolBuilder} for creating pools.
- * The builder always returns a thread safe pool and sane defaults.
+ * It is recommended that while working with pools that the {@link ExecutingPool} is used with a {@link
+ * com.ekaqu.cunulus.retry.Retryer}.  This combination will handle most error cases for you.  Also it is best to use the
+ * {@link PoolBuilder} for creating pools. The builder always returns a thread safe pool and sane defaults.
  * <p/>
  * Example building with the {@link PoolBuilder}
  * <pre>
@@ -23,12 +22,16 @@ import java.util.concurrent.TimeUnit;
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .corePoolSize(2) // optional size the pool should try to stay around
  *                                          .maxPoolSize(4) // optional max size the pool can reach
- *                                          .executorService(executorService) // optional executor service for background pool operations
+ *                                          .executorService(executorService) // optional executor service for
+ * background pool operations
  *                                          .withKeyType(String.class)
- *                                              .coreSizePerKey(2) // optional size the underlining pools should stay around
+ *                                              .coreSizePerKey(2) // optional size the underlining pools should stay
+ * around
  *                                              .maxSizePerKey(4) // optional max size each underline pool can reach
- *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline
+ * pools
+ *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys
+ * which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
@@ -38,8 +41,10 @@ import java.util.concurrent.TimeUnit;
  * {@code
  * ExecutingPool<Map.Entry<K,V>> pool = new PoolBuilder<K>()
  *                                          .withKeyType(String.class)
- *                                              .keySupplier(keySupplier) // creates new keys that index underline pools
- *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys which defines how to create new pooled entities
+ *                                              .keySupplier(keySupplier) // creates new keys that index underline
+ * pools
+ *                                              .factory(poolObjFactory) // creates a new ObjectFactory for the keys
+ * which defines how to create new pooled entities
  *                                              .buildExecutingPool(Retryers.newExponentialBackoffRetryer(10));
  * }
  * </pre>
@@ -51,8 +56,8 @@ import java.util.concurrent.TimeUnit;
 public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
 
   /**
-   * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool
-   * then the returned value will be {@code Optional#absent()}
+   * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool then the
+   * returned value will be {@code Optional#absent()}
    * <p/>
    * This method should run between O(1) and O(n)
    *
@@ -64,8 +69,8 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
   Optional<Map.Entry<K, V>> borrow(K key);
 
   /**
-   * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this
-   * method is allowed to block for.  If the time has exceeded then the returned value will be empty.
+   * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this method
+   * is allowed to block for.  If the time has exceeded then the returned value will be empty.
    * <p/>
    * This method should run between O(1) and O(n)
    *

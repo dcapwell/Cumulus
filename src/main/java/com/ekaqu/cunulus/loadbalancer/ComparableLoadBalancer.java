@@ -27,11 +27,12 @@ public abstract class ComparableLoadBalancer<E> implements LoadBalancer<E> {
   }
 
   /**
-   * Delegates load balancing to {@link ComparableLoadBalancer#get(java.util.List, java.util.Comparator)}
-   * passing in the comparator provided in the constructor
+   * Delegates load balancing to {@link ComparableLoadBalancer#get(java.util.List, java.util.Comparator)} passing in the
+   * comparator provided in the constructor
    *
    * @param items to load balance
-   * @return if items is null or empty then return null, else will call {@link ComparableLoadBalancer#get(java.util.List, java.util.Comparator)}
+   * @return if items is null or empty then return null, else will call {@link ComparableLoadBalancer#get(java.util.List,
+   *         java.util.Comparator)}
    */
   @Override
   public E get(@Nullable final List<E> items) {
@@ -41,8 +42,8 @@ public abstract class ComparableLoadBalancer<E> implements LoadBalancer<E> {
   }
 
   /**
-   * Load balance items using a comparator. It is good practice to not modify the items list but this
-   * is not guarantied by this interface.
+   * Load balance items using a comparator. It is good practice to not modify the items list but this is not guarantied
+   * by this interface.
    *
    * @param items      to load balance
    * @param comparator used to compare elements in the list

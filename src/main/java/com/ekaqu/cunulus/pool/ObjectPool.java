@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Default pool for generic objects.  This pool uses a {@link ObjectFactory} for creating new objects for the pool.
  * <p/>
- * This class is not thread safe because {@link ObjectPool#setPoolSizes(int, int)}.  This should be the only method
- * that is not thread safe, so class is still marked as threadSafe
+ * This class is not thread safe because {@link ObjectPool#setPoolSizes(int, int)}.  This should be the only method that
+ * is not thread safe, so class is still marked as threadSafe
  *
  * @param <T> type of the pool
  */

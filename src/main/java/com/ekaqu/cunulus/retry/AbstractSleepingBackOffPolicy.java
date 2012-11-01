@@ -20,6 +20,7 @@ public abstract class AbstractSleepingBackOffPolicy implements BackOffPolicy {
 
   /**
    * Determines how long to sleep for in milliseconds.
+   *
    * @param attemptCount how many times a retry has happened
    * @return time in milliseconds to sleep for
    */
