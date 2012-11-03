@@ -15,9 +15,9 @@
   </properties>
 
   <scm>
-    <connection>scm:git:git@github.com:dcapwell/Cumulus.git</connection>
-    <url>git@github.com:dcapwell/Cumulus.git</url>
-    <developerConnection>scm:git:git@github.com:dcapwell/Cumulus.git</developerConnection>
+    <connection>scm:git://github.com/dcapwell/Cumulus.git</connection>
+    <url>https://github.com/dcapwell/Cumulus</url>
+    <developerConnection>scm:git@github.com:dcapwell/Cumulus.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -157,6 +157,12 @@
         <version>3.1</version>
         <configuration>
           <reportPlugins>
+            <!-- Default Site Pages -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.4</version>
+            </plugin>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-checkstyle-plugin</artifactId>
