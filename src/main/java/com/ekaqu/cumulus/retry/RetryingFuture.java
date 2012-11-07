@@ -103,9 +103,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
   private void call(final Callable<ListenableFuture<V>> callable, final int maxRetries) {
     if (isDone() || maxRetries <= 0) {
       // hit max retries, fail the future
-      if (lastException.get() != null) {
-        setException(lastException.get());
-      }
+      setException(lastException.get());
       return;
     }
     try {
@@ -117,7 +115,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
           if (valuePredicate.apply(result)) {
             set(result);
           } else {
-            call(callable, maxRetries - 1);
+            onFailure(new RetryValueRejectedException());
           }
         }
 
@@ -130,6 +128,19 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
     } catch (Exception e) {
       lastException.set(e);
       call(callable, maxRetries - 1);
+    }
+  }
+
+  /**
+   * Exception defining that a value has been rejected.
+   */
+  public static final class RetryValueRejectedException extends Exception {
+
+    /**
+     * Creates a new retry value rejected exception.
+     */
+    public RetryValueRejectedException() {
+      super("Task was unsuccessful; returned value was marked as invalid.");
     }
   }
 }
