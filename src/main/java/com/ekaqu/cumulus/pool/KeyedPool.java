@@ -63,7 +63,7 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
    * @throws IllegalArgumentException if key doesn't exist
    */
   //TODO should a non existing key return Optional#absent?
-  Optional<Map.Entry<K, V>> borrow(K key);
+  Optional<Map.Entry<K, V>> borrow(K key) throws IllegalArgumentException, ClosedPoolException;
 
   /**
    * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this method
@@ -79,5 +79,5 @@ public interface KeyedPool<K, V> extends Pool<Map.Entry<K, V>> {
    * @throws IllegalArgumentException if key doesn't exist
    */
   //TODO should a non existing key return Optional#absent?
-  Optional<Map.Entry<K, V>> borrow(K key, long timeout, TimeUnit unit);
+  Optional<Map.Entry<K, V>> borrow(K key, long timeout, TimeUnit unit) throws IllegalArgumentException, ClosedPoolException;
 }

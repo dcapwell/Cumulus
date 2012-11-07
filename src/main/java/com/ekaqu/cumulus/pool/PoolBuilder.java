@@ -213,7 +213,7 @@ public final class PoolBuilder<T> {
    * @param <K>   key type
    * @return new KeyedPoolBuilder
    */
-  public <K> KeyedPoolBuilder<K, T> withKeyType(final Class<K> clazz) {
+  public <K> KeyedPoolBuilder<K, T> withKeyType(@SuppressWarnings("UnusedParameters") final Class<K> clazz) {
     return new KeyedPoolBuilder<K, T>();
   }
 

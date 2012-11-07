@@ -191,7 +191,7 @@ public abstract class AbstractPool<T> extends AbstractService implements Pool<T>
    *
    * @throws ClosedPoolException pool is closed
    */
-  protected final  void checkNotClosed() {
+  protected final  void checkNotClosed() throws ClosedPoolException {
     if (!isRunning()) {
       throw new ClosedPoolException();
     }

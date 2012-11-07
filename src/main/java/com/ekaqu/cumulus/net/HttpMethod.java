@@ -230,5 +230,5 @@ public enum HttpMethod {
    * This specification reserves the method name CONNECT for use with a proxy that can dynamically switch to being a
    * tunnel (e.g. SSL tunneling <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec17.html#bib44">[44]</a>).
    */
-  CONNECT;
+  CONNECT
 }

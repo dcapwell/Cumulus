@@ -3,7 +3,7 @@ package com.ekaqu.cumulus.retry;
 import com.google.common.annotations.Beta;
 
 /**
- * Abstract class for all sleep based BackOffPolicys.
+ * Abstract class for all sleep based BackOffPolicy's.
  */
 @Beta
 public abstract class AbstractSleepingBackOffPolicy implements BackOffPolicy {

@@ -45,6 +45,7 @@ public final class FailoverLoadBalancer<E> implements LoadBalancer<E> {
    * @param <E> element type
    * @return new failover LB
    */
+  @SuppressWarnings("UnusedDeclaration")
   public static <E> FailoverLoadBalancer<E> create(final LoadBalancer<E> delegate) {
     return new FailoverLoadBalancer<E>(delegate);
   }
@@ -88,7 +89,7 @@ public final class FailoverLoadBalancer<E> implements LoadBalancer<E> {
    *
    * @param throwable error thrown while using last returned element
    */
-  public void notifyError(final Throwable throwable) {
+  public void notifyError(@SuppressWarnings("UnusedParameters") final Throwable throwable) {
     // fail over by setting current to null
     current.set(null);
   }

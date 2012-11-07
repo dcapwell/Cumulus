@@ -25,12 +25,12 @@ public final class Amazon {
   /**
    * Meta Data URL for current instances host metadata.
    */
-  public static final String AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/";
+  private static final String AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/";
 
   /**
    * URL for user defined meta data.
    */
-  public static final String AWS_USERDATA_URL = "http://169.254.169.254/latest/user-data/";
+  private static final String AWS_USERDATA_URL = "http://169.254.169.254/latest/user-data/";
 
   /**
    * Enum class for working with ec2 instance meta data.  A complete list of what is available can be found <a
@@ -70,6 +70,9 @@ public final class Amazon {
      */
     HOSTNAME("hostname"),
 
+    /**
+     * Action for the instance.
+     */
     INSTANCE_ACTION("instance-action"),
 
     /**
@@ -78,8 +81,8 @@ public final class Amazon {
     INSTANCE_ID("instance-id"),
 
     /**
-     * The type of instance to launch. For more information, see <a href="http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html>Instance
-     * Types</a>.
+     * The type of instance to launch. For more information, see <a
+     * href="http://docs.amazonwebservices.com/AWSEC2/2008-08-08/DeveloperGuide/instance-types.html>Instance Types</a>.
      */
     INSTANCE_TYPE("instance-type"),
 
@@ -98,10 +101,14 @@ public final class Amazon {
      */
     MAC("mac"),
 
-    METRICS("metrics"),
+    /**
+     * The definitions for what metrics are provided by the host.
+     */
+    METRICS("metrics/vhostmd"),
 
-    NETWORK_INTERFACES("network/interfaces/"),
-
+    /**
+     * Instance profile.
+     */
     PROFILE("profile"),
 
     /**
@@ -149,8 +156,14 @@ public final class Amazon {
      */
     SECURITY_GROUPS("security-groups");
 
+    /**
+     * Retryer to use if unable to communicate with AWS.
+     */
     private final Retryer defaultRetryer = Retryers.newExponentialBackoffRetryer(3);
 
+    /**
+     * Path to AWS meta data resource.
+     */
     private final String path;
 
     /**
@@ -246,9 +259,9 @@ public final class Amazon {
         final String key = args[0].toUpperCase().trim();
         final MetaData metaData = MetaData.valueOf(key);
         final String value = metaData.remoteFetchValueWithRetries();
-        System.out.printf("%s => %s\r\n", metaData, value);
+        System.out.printf("%s => %s%n", metaData, value);
       } else {
-        StringBuilder sb = new StringBuilder("Please supply a meta data name.  The following are valid:%n");
+        StringBuilder sb = new StringBuilder("Please supply a meta data name.  The following are valid:\r\n");
         for (MetaData e : MetaData.values()) {
           sb.append(e.toString()).append("\r\n");
         }

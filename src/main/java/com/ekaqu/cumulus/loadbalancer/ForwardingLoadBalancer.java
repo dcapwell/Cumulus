@@ -22,7 +22,7 @@ public abstract class ForwardingLoadBalancer<E> extends ForwardingObject impleme
   protected abstract LoadBalancer<E> delegate();
 
   /**
-   * Delegates this method to the load balancer provided by {@link com.ekaqu.cumulus.loadbalancer.ForwardingLoadBalancer#delegate()}.
+   * Delegates this method to the load balancer provided by {@link #delegate()}.
    *
    * @param items to load balance
    * @return result of {@code delegate().get(items)}

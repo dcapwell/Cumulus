@@ -3,7 +3,7 @@ package com.ekaqu.cumulus.loadbalancer;
 /**
  * Useful methods for working with load balancers.
  */
-public class LoadBalancers {
+public final class LoadBalancers {
 
   /**
    * Hides constructor from users.

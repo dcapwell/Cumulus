@@ -161,7 +161,7 @@ public final class KeyedObjectPool<K, V> extends AbstractPool<Map.Entry<K, V>> i
       int poolSize = poolMap.size(), maxPoolSize = super.getMaxPoolSize();
       if (poolSize < maxPoolSize) {
         // leaving dead variable hear to be clear that this is a background operation
-        Future<?> future = executorService.submit(expandPool);
+        @SuppressWarnings("UnusedAssignment") Future<?> future = executorService.submit(expandPool);
       }
       awaitAdded(timeout, unit);
       if (isEmpty()) {

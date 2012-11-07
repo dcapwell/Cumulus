@@ -25,7 +25,7 @@ public interface ListeningRetryer {
    * @return future to monitor for execution ending
    * @throws RetryException when runnable throws Exception.  This will be in the future
    */
-  ListenableFuture<?> submitWithRetry(Runnable retryableTask);
+  ListenableFuture<?> submitWithRetry(Runnable retryableTask) throws RetryException;
 
   /**
    * Retry the given {@code Runnable} based off a set of conditions.
@@ -36,5 +36,5 @@ public interface ListeningRetryer {
    * @return future around result.  Returns when task completes
    * @throws RetryException when runnable throws Exception.  This will be in the future
    */
-  <T> ListenableFuture<T> submitWithRetry(Runnable retryableTask, T result);
+  <T> ListenableFuture<T> submitWithRetry(Runnable retryableTask, T result) throws RetryException;
 }

@@ -56,7 +56,7 @@ public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
    * @param obj to validate
    * @return what actions to take
    */
-  protected State validate(final T obj) {
+  protected State validate(@SuppressWarnings("UnusedParameters") final T obj) {
     return State.VALID;
   }
 
@@ -66,7 +66,7 @@ public abstract class AbstractObjectFactory<T> implements ObjectFactory<T> {
    * @param error thrown by obj
    * @return what actions to take
    */
-  protected State validateException(final Throwable error) {
+  protected State validateException(@SuppressWarnings("UnusedParameters") final Throwable error) {
     return State.VALID;
   }
 }

@@ -28,7 +28,7 @@ Already using this for exceptions
    * @param retryableTask task to retry
    * @throws RetryException when runnable throws Exception
    */
-  void submitWithRetry(Runnable retryableTask);
+  void submitWithRetry(Runnable retryableTask) throws RetryException;
 
   /**
    * Retry the given {@code Runnable} based off a set of conditions.
@@ -36,9 +36,10 @@ Already using this for exceptions
    * @param retryableTask task to retry
    * @param result returned when task is successful
    * @param <T> type returned by task
+   * @return value from task
    * @throws RetryException when runnable throws Exception
    */
-  <T> T submitWithRetry(Runnable retryableTask, T result);
+  <T> T submitWithRetry(Runnable retryableTask, T result) throws RetryException;
 
   /**
    * Create a proxy around the given target that will retry method execution.

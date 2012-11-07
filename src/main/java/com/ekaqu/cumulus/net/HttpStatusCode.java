@@ -521,6 +521,7 @@ public enum HttpStatusCode {
    * @param statusCode numeric status code
    * @return Status Code object for the given numeric code
    */
+  @SuppressWarnings({"ConstantConditions", "MagicNumber"})
   public static HttpStatusCode valueOf(final int statusCode) {
     // checkstyle complains about magic numbers but this is faster than iterating over each.
     switch (statusCode) {
@@ -697,6 +698,6 @@ public enum HttpStatusCode {
      * User agents SHOULD display any included entity to the user. These response codes are applicable to any request
      * method.
      */
-    Server_Error;
+    Server_Error
   }
 }

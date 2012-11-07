@@ -46,9 +46,10 @@ public interface Pool<T> extends Service, Sized {
    * This is a non-blocking operation that returns a element from the pool.  If no objects are in the pool then the
    * returned value will be {@link com.google.common.base.Optional#absent()} )}
    *
+   * @return optional value from the pool
    * @throws ClosedPoolException pool is closed
    */
-  Optional<T> borrow();
+  Optional<T> borrow() throws ClosedPoolException;
 
   /**
    * This is a blocking operation that returns a element from the pool.  A timeout is given to know how long this method
@@ -57,9 +58,10 @@ public interface Pool<T> extends Service, Sized {
    *
    * @param timeout how long to wait for a new object if pool is empty
    * @param unit timeout unit
+   * @return optional value from the pool
    * @throws ClosedPoolException pool is closed
    */
-  Optional<T> borrow(long timeout, TimeUnit unit);
+  Optional<T> borrow(long timeout, TimeUnit unit) throws ClosedPoolException;
 
   /**
    * Returns an object to the pool.  This method might not effect {@link com.ekaqu.cumulus.pool.Pool#size()} since a
@@ -68,7 +70,7 @@ public interface Pool<T> extends Service, Sized {
    * @param obj to return to pool
    * @throws ClosedPoolException pool is closed
    */
-  void returnToPool(T obj);
+  void returnToPool(T obj) throws ClosedPoolException;
 
   /**
    * Returns an object to the pool with the last exception thrown. This method might not effect {@link
@@ -78,7 +80,7 @@ public interface Pool<T> extends Service, Sized {
    * @param throwable thrown when last used the object
    * @throws ClosedPoolException pool is closed
    */
-  void returnToPool(T obj, Throwable throwable);
+  void returnToPool(T obj, Throwable throwable) throws ClosedPoolException;
 
   /**
    * The number of elements that this pool wishes to be around.

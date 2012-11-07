@@ -56,6 +56,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    * @param maxRetries     to retry
    * @param valuePredicate to filter out bad values
    * @param <V>            value type
+   * @return new RetryingFuture
    */
   public static <V> RetryingFuture<V> create(final Callable<ListenableFuture<V>> callable, final int maxRetries,
                                              final Predicate<V> valuePredicate) {
@@ -68,6 +69,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    * @param callable   task to execute
    * @param maxRetries to retry
    * @param <V>        value type
+   * @return new RetryingFuture
    */
   public static <V> RetryingFuture<V> create(final Callable<ListenableFuture<V>> callable, final int maxRetries) {
     return new RetryingFuture<V>(callable, maxRetries, Predicates.<V>alwaysTrue());
@@ -78,6 +80,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    *
    * @param callable task to execute
    * @param <V>      value type
+   * @return new RetryingFuture
    */
   public static <V> RetryingFuture<V> create(final Callable<ListenableFuture<V>> callable) {
     return new RetryingFuture<V>(callable, 3, Predicates.<V>alwaysTrue());
@@ -101,7 +104,8 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    * @param maxRetries to retry
    */
   private void call(final Callable<ListenableFuture<V>> callable, final int maxRetries) {
-    if (isDone() || maxRetries <= 0) {
+    Preconditions.checkState(!isDone(), "Future is done, unable to call task");
+    if (maxRetries <= 0) {
       // hit max retries, fail the future
       setException(lastException.get());
       return;
@@ -112,6 +116,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
       Futures.addCallback(future, new FutureCallback<V>() {
         @Override
         public void onSuccess(final V result) {
+          // based off the value, should this do a retry?
           if (valuePredicate.apply(result)) {
             set(result);
           } else {

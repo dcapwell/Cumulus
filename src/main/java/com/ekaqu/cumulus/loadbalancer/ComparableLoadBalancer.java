@@ -51,6 +51,7 @@ public abstract class ComparableLoadBalancer<E> implements LoadBalancer<E> {
    *
    * @return the comparator used in {@link #get(java.util.List)}
    */
+  @SuppressWarnings("UnusedDeclaration")
   public final Comparator<E> getComparator() {
     return comparator;
   }
