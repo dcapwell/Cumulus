@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A {@link java.util.concurrent.Future future} that will retry a task several times until a condition has been meet.
  * For the user, they see a normal {@link ListenableFuture} but the value could be one of several attempts to execute
- * the task where {@link #get()} refers to the final result of the successful task execution.
+ * the task where {@link #get()} refers to the final result of the successful task execution.  The max number of
+ * executions is {@code 1 + n} where n is the number of retry operations requested.
  *
  * @param <V> value type
  */
@@ -39,12 +40,12 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    * Creates a new Retrying Future.
    *
    * @param callable       task to execute
-   * @param maxRetries     to retry
+   * @param maxRetries     to retry. 0 for no retries
    * @param valuePredicate to filter out bad values
    */
   private RetryingFuture(final Callable<ListenableFuture<V>> callable, final int maxRetries,
                          final Predicate<V> valuePredicate) {
-    Preconditions.checkArgument(maxRetries > 0, "Max Retries must be at least one.");
+    Preconditions.checkArgument(maxRetries >= 0, "Max Retries must be a positive number or zero.");
     this.valuePredicate = Preconditions.checkNotNull(valuePredicate);
     call(callable, maxRetries);
   }
@@ -105,7 +106,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
    */
   private void call(final Callable<ListenableFuture<V>> callable, final int maxRetries) {
     Preconditions.checkState(!isDone(), "Future is done, unable to call task");
-    if (maxRetries <= 0) {
+    if (maxRetries < 0) {
       // hit max retries, fail the future
       setException(lastException.get());
       return;
@@ -116,8 +117,9 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
       Futures.addCallback(future, new FutureCallback<V>() {
         @Override
         public void onSuccess(final V result) {
-          // based off the value, should this do a retry?
           if (valuePredicate.apply(result)) {
+            set(result);
+          } else if (maxRetries == 0) {
             set(result);
           } else {
             onFailure(new RetryValueRejectedException());
@@ -139,7 +141,7 @@ public final class RetryingFuture<V> extends AbstractFuture<V> {
   /**
    * Exception defining that a value has been rejected.
    */
-  public static final class RetryValueRejectedException extends Exception {
+  private static final class RetryValueRejectedException extends Exception {
 
     /**
      * Creates a new retry value rejected exception.
